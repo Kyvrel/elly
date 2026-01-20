@@ -6,3 +6,4 @@ out
 *.log*
 *-output
 *.db
+*-notes
