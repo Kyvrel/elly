@@ -46,11 +46,12 @@ export class WorkspaceService {
 
   createThreads(title: string, model: string) {
     const now = new Date()
-    db.insert(chatThreads)
+    return db
+      .insert(chatThreads)
       .values({
         id: nanoid(),
         title,
-        model: model,
+        model,
         isGenerating: false,
         isFavorited: false,
         createdAt: now,
@@ -61,7 +62,8 @@ export class WorkspaceService {
 
   updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>) {
     const now = new Date()
-    return db.update(chatThreads)
+    return db
+      .update(chatThreads)
       .set({ ...updates, updatedAt: now })
       .where(eq(chatThreads.id, id))
       .run()
@@ -95,7 +97,7 @@ export class WorkspaceService {
       .onConflictDoUpdate({
         target: appSettings.id,
         set: { settingsData: setting, updatedAt: now }
-      })
+      }).run()
   }
 }
 
