@@ -7,3 +7,10 @@ out
 *-output
 *.db
 *-notes
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+*.http
