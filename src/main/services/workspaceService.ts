@@ -1,11 +1,101 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../db'
-import { appSettings } from '../db/schema'
+import {
+  AppSetting,
+  appSettings,
+  chatMessages,
+  ChatThread,
+  chatThreads,
+  Provider,
+  providers
+} from '../db/schema'
+import { nanoid } from 'nanoid'
 
 export class WorkspaceService {
+  // ===== Providers =====
+
+  getProviders() {
+    const res = db.select().from(providers).all()
+    return res
+  }
+
+  getProviderById(id: string): Provider | undefined {
+    return db.select().from(providers).where(eq(providers.id, id)).get()
+  }
+
+  upsertProviders(provider: Omit<Provider, 'createdAt' | 'updatedAt'>) {
+    const now = new Date()
+    db.insert(providers)
+      .values({ ...provider, createdAt: now, updatedAt: now })
+      .onConflictDoUpdate({ target: providers.id, set: { ...provider, updatedAt: now } })
+      .run()
+  }
+
+  deleteProvider(id: string) {
+    db.delete(providers).where(eq(providers.id, id)).run()
+  }
+
+  // ===== Threads =====
+  getAllThreads() {
+    return db.select().from(chatThreads).all()
+  }
+
+  getThreadsById(id: string): ChatThread | undefined {
+    return db.select().from(chatThreads).where(eq(chatThreads.id, id)).get()
+  }
+
+  createThreads(title: string, model: string) {
+    const now = new Date()
+    db.insert(chatThreads)
+      .values({
+        id: nanoid(),
+        title,
+        model: model,
+        isGenerating: false,
+        isFavorited: false,
+        createdAt: now,
+        updatedAt: now
+      })
+      .run()
+  }
+
+  updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>) {
+    const now = new Date()
+    return db.update(chatThreads)
+      .set({ ...updates, updatedAt: now })
+      .where(eq(chatThreads.id, id))
+      .run()
+  }
+  deleteThread(id: string) {
+    db.delete(chatThreads).where(eq(chatThreads.id, id)).run()
+  }
+
+  // ===== Threads =====
+
+  getMessagesByThreadId(threadId: string) {
+    return db.select().from(chatMessages).where(eq(chatMessages.threadId, threadId)).all()
+  }
+
+  // ===== Settings =====
+
   getSettings() {
     const result = db.select().from(appSettings).where(eq(appSettings.id, 'default')).get()
     return result?.settingsData || {}
+  }
+
+  updateSettings(setting: Record<string, any>) {
+    const now = new Date()
+    db.insert(appSettings)
+      .values({
+        id: 'default',
+        settingsData: setting,
+        createdAt: now,
+        updatedAt: now
+      })
+      .onConflictDoUpdate({
+        target: appSettings.id,
+        set: { settingsData: setting, updatedAt: now }
+      })
   }
 }
 

@@ -55,4 +55,4 @@ export const appSettings = sqliteTable('app_settings', {
 export type Provider = typeof providers.$inferSelect
 export type ChatThread = typeof chatThreads.$inferSelect
 export type ChatMessage = typeof chatMessages.$inferSelect
-export type AppSettings = typeof appSettings.$inferSelect
+export type AppSetting = typeof appSettings.$inferSelect
