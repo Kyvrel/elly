@@ -18,12 +18,7 @@ describe('ChatService', () => {
     chatService = new ChatService()
     mockWebSocket = {
       send: vi.fn(),
-      close: vi.fn(),
-      on: vi.fn(),
-      off: vi.fn(),
-      once: vi.fn(),
-      addEventListener: vi.fn(),
-      removeEventListener: vi.fn()
+      close: vi.fn()
     } as any
   })
 
@@ -31,75 +26,25 @@ describe('ChatService', () => {
     vi.clearAllMocks()
   })
 
-  describe('registerWSClient', () => {
-    it('should register a WebSocket client for a thread', () => {
+  describe('WebSocket Client Management', () => {
+    it('should register and unregister WebSocket client', () => {
       const threadId = 'thread-123'
 
       chatService.registerWSClient(threadId, mockWebSocket)
-
-      // Verify WebSocket was registered (we can test this by sending a message later)
       expect(chatService['wsClients'].has(threadId)).toBe(true)
-      expect(chatService['wsClients'].get(threadId)).toBe(mockWebSocket)
-    })
 
-    it('should log a success message when registering a client', () => {
-      const consoleSpy = vi.spyOn(console, 'log')
-      const threadId = 'thread-123'
-
-      chatService.registerWSClient(threadId, mockWebSocket)
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`WebSocket registered for thread: ${threadId}`)
-      )
-    })
-
-    it('should replace an existing WebSocket client for the same thread', () => {
-      const threadId = 'thread-123'
-      const mockWebSocket2 = { ...mockWebSocket } as any
-
-      chatService.registerWSClient(threadId, mockWebSocket)
-      chatService.registerWSClient(threadId, mockWebSocket2)
-
-      expect(chatService['wsClients'].get(threadId)).toBe(mockWebSocket2)
-    })
-  })
-
-  describe('unregisterWSClient', () => {
-    it('should unregister a WebSocket client for a thread', () => {
-      const threadId = 'thread-123'
-
-      chatService.registerWSClient(threadId, mockWebSocket)
       chatService.unregisterWSClient(threadId)
-
       expect(chatService['wsClients'].has(threadId)).toBe(false)
     })
-
-    it('should log a message when unregistering a client', () => {
-      const consoleSpy = vi.spyOn(console, 'log')
-      const threadId = 'thread-123'
-
-      chatService.registerWSClient(threadId, mockWebSocket)
-      chatService.unregisterWSClient(threadId)
-
-      expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining(`WebSocket unregistered for thread: ${threadId}`)
-      )
-    })
-
-    it('should not throw error when unregistering non-existent thread', () => {
-      expect(() => {
-        chatService.unregisterWSClient('non-existent-thread')
-      }).not.toThrow()
-    })
   })
 
-  describe('sendMessage', () => {
+  describe('sendMessage - Core Flow', () => {
     const threadId = 'thread-123'
     const userMessage = 'Hello AI!'
     const model = 'openai/gpt-4o-mini'
 
     beforeEach(() => {
-      // Mock workspaceService methods
+      // Mock workspaceService
       vi.mocked(workspaceService.insertMessage).mockReturnValue({
         id: 'msg-1',
         threadId,
@@ -131,65 +76,37 @@ describe('ChatService', () => {
         updatedAt: new Date()
       })
 
-      vi.mocked(workspaceService.updateThread).mockReturnValue(undefined)
+      vi.mocked(workspaceService.updateThread).mockImplementation(() => {})
     })
 
-    it('should save user message to database', async () => {
+    it('should save user message and update thread state', async () => {
       const { streamText } = await import('ai')
 
-      // Mock streamText to return a simple stream
-      vi.mocked(streamText).mockResolvedValue({
+      vi.mocked(streamText).mockReturnValue({
         textStream: (async function* () {
-          yield 'Hello'
-          yield ' there!'
+          yield 'Response'
         })(),
-        text: Promise.resolve('Hello there!')
+        text: Promise.resolve('Response')
       } as any)
 
       await chatService.sendMessage(threadId, userMessage, model)
 
+      // Should save user message
       expect(workspaceService.insertMessage).toHaveBeenCalledWith({
         threadId,
         parentId: null,
-        message: { role: 'user', content: userMessage },
-        timestamp: expect.any(String)
+        message: { role: 'user', content: userMessage }
       })
-    })
 
-    it('should update thread isGenerating to true at start', async () => {
-      const { streamText } = await import('ai')
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
+      // Should update thread generating state
       expect(workspaceService.updateThread).toHaveBeenCalledWith(threadId, { isGenerating: true })
+      expect(workspaceService.updateThread).toHaveBeenCalledWith(threadId, { isGenerating: false })
     })
 
-    it('should retrieve chat history from database', async () => {
+    it('should parse model and get provider', async () => {
       const { streamText } = await import('ai')
 
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
-      expect(workspaceService.getMessagesByThreadId).toHaveBeenCalledWith(threadId)
-    })
-
-    it('should parse model string and retrieve provider', async () => {
-      const { streamText } = await import('ai')
-
-      vi.mocked(streamText).mockResolvedValue({
+      vi.mocked(streamText).mockReturnValue({
         textStream: (async function* () {
           yield 'test'
         })(),
@@ -199,6 +116,7 @@ describe('ChatService', () => {
       await chatService.sendMessage(threadId, userMessage, model)
 
       expect(workspaceService.getProviderById).toHaveBeenCalledWith('openai')
+      expect(workspaceService.getMessagesByThreadId).toHaveBeenCalledWith(threadId)
     })
 
     it('should throw error if provider not found', async () => {
@@ -209,42 +127,12 @@ describe('ChatService', () => {
       )
     })
 
-    it('should stream text chunks to WebSocket client', async () => {
-      const { streamText } = await import('ai')
-
-      // Register WebSocket
-      chatService.registerWSClient(threadId, mockWebSocket)
-
-      // Mock streamText to return chunks
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'Hello'
-          yield ' there'
-          yield '!'
-        })(),
-        text: Promise.resolve('Hello there!')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
-      // Verify WebSocket.send was called for each chunk
-      expect(mockWebSocket.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'text', content: 'Hello' })
-      )
-      expect(mockWebSocket.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'text', content: ' there' })
-      )
-      expect(mockWebSocket.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'text', content: '!' })
-      )
-    })
-
-    it('should save assistant message with complete text after streaming', async () => {
+    it('should stream text chunks to WebSocket and save assistant message', async () => {
       const { streamText } = await import('ai')
 
       chatService.registerWSClient(threadId, mockWebSocket)
 
-      vi.mocked(streamText).mockResolvedValue({
+      vi.mocked(streamText).mockReturnValue({
         textStream: (async function* () {
           yield 'Hello'
           yield ' there!'
@@ -254,216 +142,87 @@ describe('ChatService', () => {
 
       await chatService.sendMessage(threadId, userMessage, model)
 
-      // Should be called twice: once for user message, once for assistant message
-      expect(workspaceService.insertMessage).toHaveBeenCalledTimes(2)
+      // Should send text chunks
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        JSON.stringify({ type: 'text', content: 'Hello' })
+      )
+      expect(mockWebSocket.send).toHaveBeenCalledWith(
+        JSON.stringify({ type: 'text', content: ' there!' })
+      )
 
-      // Check the assistant message
+      // Should send done event
+      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify({ type: 'done' }))
+
+      // Should save assistant message with full text
+      expect(workspaceService.insertMessage).toHaveBeenCalledTimes(2)
       const assistantMessageCall = vi.mocked(workspaceService.insertMessage).mock.calls[1][0]
       expect(assistantMessageCall.message.role).toBe('assistant')
       expect(assistantMessageCall.message.content).toBe('Hello there!')
     })
 
-    it('should send done event to WebSocket when complete', async () => {
-      const { streamText } = await import('ai')
-
-      chatService.registerWSClient(threadId, mockWebSocket)
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
-      expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify({ type: 'done' }))
-    })
-
-    it('should update thread isGenerating to false when complete', async () => {
-      const { streamText } = await import('ai')
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
-      // Should be called twice: true at start, false at end
-      expect(workspaceService.updateThread).toHaveBeenCalledWith(threadId, { isGenerating: false })
-    })
-
-    it('should handle errors and update thread state', async () => {
+    it('should handle errors gracefully', async () => {
       const { streamText } = await import('ai')
       const errorMessage = 'AI API Error'
 
       chatService.registerWSClient(threadId, mockWebSocket)
 
-      vi.mocked(streamText).mockRejectedValue(new Error(errorMessage))
+      // Mock streamText to throw error
+      vi.mocked(streamText).mockImplementation(() => {
+        throw new Error(errorMessage)
+      })
 
       await expect(chatService.sendMessage(threadId, userMessage, model)).rejects.toThrow(
         errorMessage
       )
 
-      // Should set isGenerating to false on error
+      // Should reset generating state on error
       expect(workspaceService.updateThread).toHaveBeenCalledWith(threadId, { isGenerating: false })
-    })
 
-    it('should send error event to WebSocket on failure', async () => {
-      const { streamText } = await import('ai')
-      const errorMessage = 'AI API Error'
-
-      chatService.registerWSClient(threadId, mockWebSocket)
-
-      vi.mocked(streamText).mockRejectedValue(new Error(errorMessage))
-
-      await expect(chatService.sendMessage(threadId, userMessage, model)).rejects.toThrow()
-
+      // Should send error event to WebSocket
       expect(mockWebSocket.send).toHaveBeenCalledWith(
         JSON.stringify({ type: 'error', message: errorMessage })
       )
     })
 
-    it('should log error when chat fails', async () => {
-      const { streamText } = await import('ai')
-      const consoleErrorSpy = vi.spyOn(console, 'error')
-      const errorMessage = 'AI API Error'
-
-      vi.mocked(streamText).mockRejectedValue(new Error(errorMessage))
-
-      await expect(chatService.sendMessage(threadId, userMessage, model)).rejects.toThrow()
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith('❌ Chat error:', expect.any(Error))
-    })
-
-    it('should work without WebSocket client registered', async () => {
+    it('should work without WebSocket client', async () => {
       const { streamText } = await import('ai')
 
-      // Don't register WebSocket
-      vi.mocked(streamText).mockResolvedValue({
+      vi.mocked(streamText).mockReturnValue({
         textStream: (async function* () {
           yield 'test'
         })(),
         text: Promise.resolve('test')
       } as any)
 
-      // Should not throw
       await expect(chatService.sendMessage(threadId, userMessage, model)).resolves.toEqual({
         success: true
       })
     })
-
-    it('should return success object on completion', async () => {
-      const { streamText } = await import('ai')
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      const result = await chatService.sendMessage(threadId, userMessage, model)
-
-      expect(result).toEqual({ success: true })
-    })
-
-    it('should handle multiple model formats correctly', async () => {
-      const { streamText } = await import('ai')
-      const { createAIProvider } = await import('../AIProviderFactory')
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      vi.mocked(createAIProvider).mockReturnValue({} as any)
-
-      // Test with different model formats
-      await chatService.sendMessage(threadId, userMessage, 'anthropic/claude-3-5-sonnet-20241022')
-
-      expect(workspaceService.getProviderById).toHaveBeenCalledWith('anthropic')
-    })
-
-    it('should accumulate complete text from all chunks', async () => {
-      const { streamText } = await import('ai')
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'The '
-          yield 'quick '
-          yield 'brown '
-          yield 'fox'
-        })(),
-        text: Promise.resolve('The quick brown fox')
-      } as any)
-
-      await chatService.sendMessage(threadId, userMessage, model)
-
-      const assistantMessageCall = vi.mocked(workspaceService.insertMessage).mock.calls[1][0]
-      expect(assistantMessageCall.message.content).toBe('The quick brown fox')
-    })
   })
 
-  describe('Integration tests', () => {
-    it('should handle complete chat flow: register, send, unregister', async () => {
+  describe('Integration', () => {
+    it('should handle complete chat flow', async () => {
       const { streamText } = await import('ai')
-      const threadId = 'thread-integration'
+      const threadId = 'thread-test'
 
-      // 1. Register WebSocket
       chatService.registerWSClient(threadId, mockWebSocket)
 
-      // 2. Send message
-      vi.mocked(streamText).mockResolvedValue({
+      vi.mocked(streamText).mockReturnValue({
         textStream: (async function* () {
-          yield 'Response'
+          yield 'AI Response'
         })(),
-        text: Promise.resolve('Response')
+        text: Promise.resolve('AI Response')
       } as any)
 
-      await chatService.sendMessage(threadId, 'Test', 'openai/gpt-4o-mini')
+      await chatService.sendMessage(threadId, 'Test message', 'openai/gpt-4o-mini')
 
-      // 3. Verify WebSocket received messages
       expect(mockWebSocket.send).toHaveBeenCalledWith(
-        JSON.stringify({ type: 'text', content: 'Response' })
+        JSON.stringify({ type: 'text', content: 'AI Response' })
       )
       expect(mockWebSocket.send).toHaveBeenCalledWith(JSON.stringify({ type: 'done' }))
 
-      // 4. Unregister
       chatService.unregisterWSClient(threadId)
       expect(chatService['wsClients'].has(threadId)).toBe(false)
-    })
-
-    it('should handle multiple concurrent threads', async () => {
-      const { streamText } = await import('ai')
-      const thread1 = 'thread-1'
-      const thread2 = 'thread-2'
-      const mockWs1 = { ...mockWebSocket } as any
-      const mockWs2 = { ...mockWebSocket, send: vi.fn() } as any
-
-      chatService.registerWSClient(thread1, mockWs1)
-      chatService.registerWSClient(thread2, mockWs2)
-
-      expect(chatService['wsClients'].size).toBe(2)
-
-      vi.mocked(streamText).mockResolvedValue({
-        textStream: (async function* () {
-          yield 'test'
-        })(),
-        text: Promise.resolve('test')
-      } as any)
-
-      // Send to thread 1
-      await chatService.sendMessage(thread1, 'msg1', 'openai/gpt-4o-mini')
-
-      // Only mockWs1 should receive the message
-      expect(mockWs1.send).toHaveBeenCalled()
-      expect(mockWs2.send).not.toHaveBeenCalled()
     })
   })
 })

@@ -35,7 +35,7 @@ export class ChatService {
       const [providerId, modelName] = model.split('/')
       const provider = workspaceService.getProviderById(providerId)
       if (!provider) {
-        throw new Error(`provider not found ${providerId}`)
+        throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
       const { textStream } = streamText({ model: aiModel, messages: messages as any })
