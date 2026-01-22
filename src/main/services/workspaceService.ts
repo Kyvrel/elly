@@ -3,6 +3,7 @@ import { db } from '../db'
 import {
   AppSetting,
   appSettings,
+  ChatMessage,
   chatMessages,
   ChatThread,
   chatThreads,
@@ -72,10 +73,17 @@ export class WorkspaceService {
     db.delete(chatThreads).where(eq(chatThreads.id, id)).run()
   }
 
-  // ===== Threads =====
+  // ===== Messages =====
 
   getMessagesByThreadId(threadId: string) {
     return db.select().from(chatMessages).where(eq(chatMessages.threadId, threadId)).all()
+  }
+
+  insertMessage(msg: Omit<ChatMessage, 'id' | 'createdAt' | 'updatedAt'>): ChatMessage {
+    const now = new Date()
+    const messsage = { id: nanoid(), ...msg, createdAt: now, updatedAt: now }
+    db.insert(chatMessages).values(messsage).run()
+    return messsage
   }
 
   // ===== Settings =====
@@ -97,7 +105,8 @@ export class WorkspaceService {
       .onConflictDoUpdate({
         target: appSettings.id,
         set: { settingsData: setting, updatedAt: now }
-      }).run()
+      })
+      .run()
   }
 }
 
