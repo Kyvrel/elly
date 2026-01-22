@@ -38,7 +38,7 @@ export class ChatService {
         throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
-      const { textStream } = streamText({ model: aiModel, messages: messages as any })
+      const { textStream } = await streamText({ model: aiModel, messages: messages as any })
       let fullText = ''
       const ws = this.wsClients.get(threadId)
 
