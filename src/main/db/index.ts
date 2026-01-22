@@ -31,3 +31,9 @@ const sqlite = new Database(dbPath)
 // WAL模式: 写操作阻塞读操作(性能优化)
 sqlite.pragma('journal_mode = WAL')
 export const db = drizzle(sqlite, { schema })
+
+export function initDatabase() {
+  // Note: Database migrations should be run manually with:
+  // pnpm db:generate && pnpm db:migrate
+  // Don't run them from within Electron as it uses a different Node.js version
+}

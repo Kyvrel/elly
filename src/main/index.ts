@@ -2,10 +2,16 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { initDatabase } from './db'
+import { createApiServer } from './api/server'
+import { createWebSocketServer } from './services/WebSocketService'
+import { setupIPCHandlers } from './ipc/handlers'
+
+let mainWindow: BrowserWindow | null = null
 
 function createWindow(): void {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 900,
     height: 670,
     show: false,
@@ -18,7 +24,7 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
+    mainWindow?.show()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -39,6 +45,18 @@ function createWindow(): void {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  initDatabase()
+
+  createApiServer()
+
+  createWebSocketServer()
+
+  createWindow()
+
+  // Non-null assertion operator
+  // mainWindow is not null or undefined, plase trust me
+  setupIPCHandlers(mainWindow!)
+
   // Set app user model id for windows
   electronApp.setAppUserModelId('com.electron')
 
