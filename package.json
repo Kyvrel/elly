@@ -12,6 +12,10 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest run --coverage",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "dev:api": "NODE_ENV=development tsx src/main/api/server.ts",
@@ -61,6 +65,7 @@
     "@types/react-dom": "^19.2.3",
     "@types/ws": "^8.18.1",
     "@vitejs/plugin-react": "^5.1.1",
+    "@vitest/ui": "^3.0.0",
     "drizzle-kit": "^0.31.8",
     "electron": "^39.2.6",
     "electron-builder": "^26.0.12",
@@ -74,7 +79,8 @@
     "react-dom": "^19.2.1",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3",
-    "vite": "^7.2.6"
+    "vite": "^7.2.6",
+    "vitest": "^3.0.0"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
