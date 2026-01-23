@@ -1,0 +1,59 @@
+name: Auto Bump Patch & Tag
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-bump-tag-main
+  cancel-in-progress: true
+
+jobs:
+  bump-and-tag:
+    # Avoid infinite loops when this workflow pushes the bump commit.
+    if: ${{ github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'chore: bump version to') }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Bump patch version in package.json
+        id: bump
+        shell: bash
+        run: |
+          VERSION="$(node --input-type=commonjs - <<'NODE'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const [maj, min, pat] = pkg.version.split('.').map(Number);
+          const next = [maj, min, pat + 1].join('.');
+          pkg.version = next;
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          process.stdout.write(next);
+          NODE
+          )"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Commit and tag
+        shell: bash
+        run: |
+          VERSION="${{ steps.bump.outputs.version }}"
+          git add package.json
+          git commit -m "chore: bump version to ${VERSION}"
+          git tag "v${VERSION}"
+
+      - name: Push commit and tag
+        run: |
+          git push origin HEAD:main
+          git push origin "v${{ steps.bump.outputs.version }}"
+
