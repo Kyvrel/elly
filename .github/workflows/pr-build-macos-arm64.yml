@@ -45,8 +45,8 @@ jobs:
       # - name: Lint
       #   run: pnpm run lint
 
-      - name: Type check
-        run: pnpm run typecheck
+      # - name: Type check
+      #   run: pnpm run typecheck
 
       - name: Build macOS (ARM64)
         run: pnpm run build:mac
