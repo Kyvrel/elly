@@ -1,26 +1,26 @@
-name: Auto Bump Patch & Tag
+name: Release on PR Merge (macOS ARM64)
 
 on:
-  push:
-    branches: [main]
+  pull_request:
+    types: [closed]
 
 permissions:
   contents: write
 
 concurrency:
-  group: auto-bump-tag-main
-  cancel-in-progress: true
+  group: release-on-merge-${{ github.event.pull_request.base.ref }}
+  cancel-in-progress: false
 
 jobs:
-  bump-and-tag:
-    # Avoid infinite loops when this workflow pushes the bump commit.
-    if: "${{ github.actor != 'github-actions[bot]' && !contains(github.event.head_commit.message, 'chore: bump version to') }}"
-    runs-on: ubuntu-latest
+  bump-build-release:
+    if: ${{ github.event.pull_request.merged == true && github.actor != 'github-actions[bot]' }}
+    runs-on: macos-14
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
+          ref: ${{ github.event.pull_request.base.ref }}
           fetch-depth: 0
 
       - name: Configure git
@@ -52,7 +52,79 @@ jobs:
           git commit -m "chore: bump version to ${VERSION}"
           git tag "v${VERSION}"
 
-      - name: Push commit and tag
+      - name: Push bump commit and tag
         run: |
-          git push origin HEAD:main
+          git push origin "HEAD:${{ github.event.pull_request.base.ref }}"
           git push origin "v${{ steps.bump.outputs.version }}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build macOS (ARM64)
+        run: pnpm run build:mac
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Prepare release notes from PR
+        shell: bash
+        env:
+          VERSION: v${{ steps.bump.outputs.version }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          {
+            echo "# ${VERSION}"
+            echo ""
+            echo "## ${PR_TITLE}"
+            echo ""
+            if [ -n "${PR_BODY}" ]; then
+              echo "${PR_BODY}"
+              echo ""
+            fi
+            echo "---"
+            echo ""
+            echo "Merged PR: #${PR_NUMBER}"
+          } > release-notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.version }}
+          name: v${{ steps.bump.outputs.version }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body_path: release-notes.md
+          fail_on_unmatched_files: false
+          files: |
+            dist/*.dmg
+            dist/*.dmg.blockmap
+            dist/*.zip
+            dist/*.zip.blockmap
+            dist/latest-mac.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
