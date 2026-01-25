@@ -2,7 +2,7 @@ const API_BASE = 'http://localhost:23001'
 
 async function fetchAPI<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { 'Content-Type': 'Application/json' },
+    headers: { 'Content-Type': 'application/json' },
     ...options
   })
   if (!res.ok) {
@@ -23,7 +23,7 @@ export const api = {
   messages: {
     getByThread: (threadId: string) => fetchAPI(`/api/threads/${threadId}/messages`),
     send: (data: { threadId: string; message: string; model: string }) =>
-      fetch('/api/chat/completions', {
+      fetchAPI('/api/chat/completions', {
         method: 'POST',
         body: JSON.stringify(data)
       })
