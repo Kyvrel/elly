@@ -21,7 +21,7 @@ export const api = {
   },
 
   messages: {
-    getByThread: (threadId: string) => fetchAPI(`/api/threads/${threadId}/messages`),
+    getByThread: (threadId: string) => fetchAPI<any[]>(`/api/threads/${threadId}/messages`),
     send: (data: { threadId: string; message: string; model: string }) =>
       fetchAPI('/api/chat/completions', {
         method: 'POST',

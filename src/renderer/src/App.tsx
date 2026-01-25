@@ -3,7 +3,7 @@ import { api } from './lib/api'
 
 function App(): React.JSX.Element {
   const [messages, setMessages] = useState([
-    { id: 1, role: 'ai', content: 'hello, how can i help you today' },
+    { id: 1, role: 'assistant', content: 'hello, how can i help you today' },
     { id: 2, role: 'user', content: 'show me the design' }
   ])
   const [threads, setThreads] = useState<any[]>([])
@@ -16,6 +16,21 @@ function App(): React.JSX.Element {
     load()
   }, [])
 
+  const [activeThreadId, setActiveThreadId] = useState('')
+
+  useEffect(() => {
+    if (!activeThreadId) return
+    const load = async () => {
+      const data = await api.messages.getByThread(activeThreadId)
+      const formattedMsgs = data.map((item) => ({
+        id: item.id,
+        role: item.message.role,
+        content: item.message.content
+      }))
+      setMessages(formattedMsgs)
+    }
+    load()
+  }, [activeThreadId])
   const [input, setInput] = useState('')
 
   const handleClick = () => {
@@ -24,6 +39,8 @@ function App(): React.JSX.Element {
     setMessages([...messages, newUserMsg])
     setInput('')
   }
+
+  const isAssistant = (role: string) => role === 'assistant' || role === 'ai'
   return (
     <div className="flex h-screen bg-gray-50">
       {/* sidebar */}
@@ -36,6 +53,7 @@ function App(): React.JSX.Element {
             <div
               key={thread.id}
               className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700"
+              onClick={() => setActiveThreadId(thread.id)}
             >
               {thread.title}
             </div>
@@ -49,10 +67,10 @@ function App(): React.JSX.Element {
           {messages.map((message, _) => (
             <div
               key={`${message.id}`}
-              className={`flex ${message.role == 'ai' ? 'justify-start' : 'justify-end'} `}
+              className={`flex ${isAssistant(message.role) ? 'justify-start' : 'justify-end'} `}
             >
               <div
-                className={`${message.role == 'ai' ? ' bg-gray-100 text-gray-800' : 'bg-blue-500 text-white'} max-w-[80%] rounded-lg p-3`}
+                className={`${isAssistant(message.role) ? ' bg-gray-100 text-gray-800' : 'bg-blue-500 text-white'} max-w-[80%] rounded-lg p-3`}
               >
                 {message.content}
               </div>
