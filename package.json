@@ -34,6 +34,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.15",
     "@ai-sdk/openai": "^3.0.12",
+    "@ai-sdk/react": "^3.0.51",
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
     "@radix-ui/react-dialog": "^1.1.15",
