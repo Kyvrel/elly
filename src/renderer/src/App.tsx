@@ -1,10 +1,20 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { api } from './lib/api'
 
 function App(): React.JSX.Element {
   const [messages, setMessages] = useState([
     { id: 1, role: 'ai', content: 'hello, how can i help you today' },
     { id: 2, role: 'user', content: 'show me the design' }
   ])
+  const [threads, setThreads] = useState<any[]>([])
+  useEffect(() => {
+    const load = async () => {
+      const data = await api.threads.getAll()
+      console.log('threads: ', data)
+      setThreads(data)
+    }
+    load()
+  }, [])
 
   const [input, setInput] = useState('')
 
@@ -22,12 +32,14 @@ function App(): React.JSX.Element {
           + New Chat
         </button>
         <div className="flex flex-col flex-1 mt-4">
-          <div className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700">
-            Project Planning
-          </div>
-          <div className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700">
-            Python Script
-          </div>
+          {threads.map((thread) => (
+            <div
+              key={thread.id}
+              className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700"
+            >
+              {thread.title}
+            </div>
+          ))}
         </div>
       </div>
 
