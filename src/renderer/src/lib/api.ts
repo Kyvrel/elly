@@ -17,7 +17,7 @@ export const api = {
     getAll: () => fetchAPI<any[]>('/api/threads'),
     create: (data: { title: string; model: string }) =>
       fetchAPI('/api/threads', { method: 'POST', body: JSON.stringify(data) }),
-    delete: (id: string) => fetch(`/api/threads/${id}`, { method: 'DELETE' })
+    delete: (id: string) => fetchAPI(`/api/threads/${id}`, { method: 'DELETE' })
   },
 
   messages: {
