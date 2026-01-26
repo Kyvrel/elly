@@ -44,11 +44,41 @@ jobs:
           )"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
+      - name: Update CHANGELOG.md
+        shell: bash
+        env:
+          VERSION: v${{ steps.bump.outputs.version }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          set -euo pipefail
+
+          if [ ! -f CHANGELOG.md ] || [ ! -s CHANGELOG.md ]; then
+            {
+              echo "# Changelog"
+              echo ""
+            } > CHANGELOG.md
+          fi
+
+          DATE_UTC="$(date -u +%Y-%m-%d)"
+          TMP_FILE="$(mktemp)"
+
+          {
+            echo "## ${VERSION} (${DATE_UTC})"
+            echo ""
+            echo "- [#${PR_NUMBER}](${PR_URL}) ${PR_TITLE}"
+            echo ""
+            cat CHANGELOG.md
+          } > "$TMP_FILE"
+
+          mv "$TMP_FILE" CHANGELOG.md
+
       - name: Commit and tag
         shell: bash
         run: |
           VERSION="${{ steps.bump.outputs.version }}"
-          git add package.json
+          git add package.json CHANGELOG.md
           git commit -m "chore: bump version to ${VERSION}"
           git tag "v${VERSION}"
 
