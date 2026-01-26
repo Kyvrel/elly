@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import path from 'path'
+import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
   test: {
@@ -8,19 +9,13 @@ export default defineConfig({
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
-      exclude: [
-        'node_modules/',
-        'out/',
-        'dist/',
-        '**/*.d.ts',
-        '**/*.config.*',
-        '**/mockData/**'
-      ]
+      exclude: ['node_modules/', 'out/', 'dist/', '**/*.d.ts', '**/*.config.*', '**/mockData/**']
     }
   },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src')
     }
-  }
+  },
+  plugins: [tailwindcss()]
 })

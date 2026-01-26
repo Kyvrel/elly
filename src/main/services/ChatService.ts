@@ -31,6 +31,8 @@ export class ChatService {
       })
 
       const messages = workspaceService.getMessagesByThreadId(threadId)
+      console.log('[sendMessage] messages: ', messages)
+      console.log('[sendMessage] model: ', model)
 
       const [providerId, modelName] = model.split('/')
       const provider = workspaceService.getProviderById(providerId)
@@ -38,7 +40,11 @@ export class ChatService {
         throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
-      const { textStream } = await streamText({ model: aiModel, messages: messages as any })
+
+      const { textStream } = await streamText({
+        model: aiModel,
+        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content }))
+      })
       let fullText = ''
       const ws = this.wsClients.get(threadId)
 

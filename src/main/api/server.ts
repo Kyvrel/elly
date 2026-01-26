@@ -3,7 +3,7 @@ import cors from 'cors'
 import { workspaceService } from '../services/workspaceService.js'
 import { chatService } from '../services/ChatService.js'
 
-const API_PORT = 29999
+const API_PORT = 23001
 
 export function createApiServer() {
   const app = express()

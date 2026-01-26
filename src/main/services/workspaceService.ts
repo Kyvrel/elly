@@ -76,6 +76,7 @@ export class WorkspaceService {
   // ===== Messages =====
 
   getMessagesByThreadId(threadId: string) {
+    console.log('[getMessagesByThreadId] threadId:', threadId)
     return db.select().from(chatMessages).where(eq(chatMessages.threadId, threadId)).all()
   }
 
