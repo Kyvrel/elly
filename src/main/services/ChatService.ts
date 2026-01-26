@@ -1,5 +1,5 @@
 import WebSocket from 'ws'
-import { workspaceService } from './workspaceService'
+import { workspaceService } from './WorkspaceService'
 import { streamText } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 

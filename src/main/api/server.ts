@@ -1,6 +1,6 @@
 import express from 'express'
 import cors from 'cors'
-import { workspaceService } from '../services/workspaceService.js'
+import { workspaceService } from '../services/WorkspaceService.js'
 import { chatService } from '../services/ChatService.js'
 
 const API_PORT = 23001
