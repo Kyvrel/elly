@@ -12,16 +12,16 @@ export interface ToolResult {
   data?: any
   success: boolean
   error?: string
-  metadata: Record<string, any>
+  metadata?: Record<string, any>
 }
 
 export interface ToolDefinition {
   name: string
   description: string
-  parameters: z.ZodSchema
-  execute: (params: any) => Promise<ToolResult>
   category: ToolCategory
   requiresApproval: boolean
+  parameters: z.ZodSchema
+  execute: (params: any) => Promise<ToolResult>
 }
 
 export interface AITool {

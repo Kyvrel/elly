@@ -1,6 +1,5 @@
 import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
-import { boolean } from 'zod'
 
 const timestamps = {
   createdAt: int({ mode: 'timestamp' })
@@ -57,7 +56,7 @@ export const appSettings = sqliteTable('app_settings', {
 export const workspace = sqliteTable('workspace', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
-  path: text('path').notNull(),
+  path: text('path').notNull(), // absolute path
   isActive: int('is_active', { mode: 'boolean' }).default(false),
   ...timestamps
 })
