@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '.././lib/api'
+import { ChatThreadProps } from '@renderer/App'
 
-export function ChatThread({ threadId }) {
+export function ChatThread({ threadId }: ChatThreadProps) {
   const [input, setInput] = useState('')
   const [streamingContent, setStreamingContent] = useState('')
   const [messages, setMessages] = useState([

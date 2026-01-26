@@ -10,6 +10,10 @@ export interface SidebarProps {
   onNewChat: () => void
 }
 
+export interface ChatThreadProps {
+  threadId: string
+}
+
 function App(): React.JSX.Element {
   const [threads, setThreads] = useState<any[]>([])
   const [activeThreadId, setActiveThreadId] = useState('')
