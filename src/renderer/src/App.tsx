@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
 import { api } from './lib/api'
+import Sidebar from './components/Sidebar'
+
+export interface SidebarProps {
+  threads: any[]
+  activeId: string
+  onSelect: (id: string) => void
+  onNewChat: () => void
+}
 
 function App(): React.JSX.Element {
   const [messages, setMessages] = useState([
@@ -86,22 +94,12 @@ function App(): React.JSX.Element {
   return (
     <div className="flex h-screen bg-gray-50">
       {/* sidebar */}
-      <div className="flex flex-col gap-4 w-64 bg-gray-50 p-4">
-        <button className="bg-blue-500 hover:bg-blue-600 rounded-md shadow-sm p-2  text-white">
-          + New Chat
-        </button>
-        <div className="flex flex-col flex-1 mt-4">
-          {threads.map((thread) => (
-            <div
-              key={thread.id}
-              className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700"
-              onClick={() => setActiveThreadId(thread.id)}
-            >
-              {thread.title}
-            </div>
-          ))}
-        </div>
-      </div>
+      <Sidebar
+        threads={threads}
+        activeThreadId={activeThreadId}
+        onSelect={setActiveThreadId}
+        onNew={() => alert('New Chat here.')}
+      />
 
       {/* chat area */}
       <div className="flex-1 flex flex-col h-full bg-white ">
