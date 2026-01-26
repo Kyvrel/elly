@@ -37,6 +37,31 @@ function App(): React.JSX.Element {
   }, [activeThreadId])
   const [input, setInput] = useState('')
 
+  const [streamingContent, setStreamingContent] = useState('')
+  useEffect(() => {
+    if (!activeThreadId) return
+
+    const ws = new WebSocket('ws://localhost:8765')
+
+    ws.onopen = () => {
+      console.log('connected to ws')
+      ws.send(JSON.stringify({ type: 'register', threadId: activeThreadId }))
+    }
+
+    ws.onmessage = (event) => {
+      console.log('ws onMessage data:', event.data)
+      const data = JSON.parse(event.data)
+
+      if (data.type === 'text') {
+        setStreamingContent((prev) => prev + data.content)
+      } else if (data.type === 'done') {
+        setStreamingContent('')
+        api.messages.getByThread(activeThreadId).then((d) => setMessages(formatMsg(d)))
+      }
+    }
+    return () => ws.close()
+  }, [activeThreadId])
+
   const handleClick = async () => {
     if (!input.trim()) return
     if (!activeThreadId) {
@@ -93,6 +118,13 @@ function App(): React.JSX.Element {
               </div>
             </div>
           ))}
+          {streamingContent && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 text-gray-800  max-w-[80%] rounded-lg p-3">
+                {streamingContent}
+              </div>
+            </div>
+          )}
         </div>
         <div className="h-16 p-4 flex justify-between gap-2 border-t border-t-gray-100">
           <input
