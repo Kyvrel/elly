@@ -1,10 +1,26 @@
 import { useEffect, useState } from 'react'
 import { api } from '.././lib/api'
 import { ChatThreadProps } from '@renderer/App'
+import ChatInput from './ChatInput'
+
+export interface ChatInputProps {
+  onSend: () => void
+  input: string
+  onType: (input: string) => void
+}
+
+export const formatMsg = (data) => {
+  return data.map((item) => ({
+    id: item.id,
+    role: item.message.role,
+    content: item.message.content
+  }))
+}
 
 export function ChatThread({ threadId }: ChatThreadProps) {
-  const [input, setInput] = useState('')
   const [streamingContent, setStreamingContent] = useState('')
+  const [input, setInput] = useState('')
+
   const [messages, setMessages] = useState([
     { id: 1, role: 'assistant', content: 'hello, how can i help you today' },
     { id: 2, role: 'user', content: 'show me the design' }
@@ -39,14 +55,6 @@ export function ChatThread({ threadId }: ChatThreadProps) {
 
     const data = await api.messages.getByThread(threadId)
     setMessages(formatMsg(data))
-  }
-
-  const formatMsg = (data) => {
-    return data.map((item) => ({
-      id: item.id,
-      role: item.message.role,
-      content: item.message.content
-    }))
   }
 
   useEffect(() => {
@@ -95,27 +103,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
           </div>
         )}
       </div>
-      <div className="h-16 p-4 flex justify-between gap-2 border-t border-t-gray-100">
-        <input
-          type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key == 'Enter' && !e.shiftKey) {
-              e.preventDefault()
-              handleClick()
-            }
-          }}
-          placeholder="input your question"
-          className="px-2 py-1 w-full border border-gray-300 rounded-md"
-        />
-        <button
-          className="bg-blue-500 hover:bg-blue-600 rounded-md shadow-sm text-white px-2 py-1"
-          onClick={handleClick}
-        >
-          Send
-        </button>
-      </div>
+      <ChatInput onSend={handleClick} input={input} onType={setInput} />
     </div>
   )
 }
