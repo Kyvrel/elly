@@ -18,26 +18,43 @@ function App(): React.JSX.Element {
 
   const [activeThreadId, setActiveThreadId] = useState('')
 
+  const formatMsg = (data) => {
+    return data.map((item) => ({
+      id: item.id,
+      role: item.message.role,
+      content: item.message.content
+    }))
+  }
+
   useEffect(() => {
     if (!activeThreadId) return
     const load = async () => {
       const data = await api.messages.getByThread(activeThreadId)
-      const formattedMsgs = data.map((item) => ({
-        id: item.id,
-        role: item.message.role,
-        content: item.message.content
-      }))
+      const formattedMsgs = formatMsg(data)
       setMessages(formattedMsgs)
     }
     load()
   }, [activeThreadId])
   const [input, setInput] = useState('')
 
-  const handleClick = () => {
+  const handleClick = async () => {
     if (!input.trim()) return
+    if (!activeThreadId) {
+      alert('please select a chat')
+      return
+    }
     const newUserMsg = { id: Date.now(), role: 'user', content: input }
     setMessages([...messages, newUserMsg])
     setInput('')
+
+    await api.messages.send({
+      threadId: activeThreadId,
+      message: input,
+      model: 'google/gemini-2.5-flash'
+    })
+
+    const data = await api.messages.getByThread(activeThreadId)
+    setMessages(formatMsg(data))
   }
 
   const isAssistant = (role: string) => role === 'assistant' || role === 'ai'
