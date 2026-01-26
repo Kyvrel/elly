@@ -44,15 +44,44 @@ jobs:
           )"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
-      - name: Update CHANGELOG.md
+      - name: Generate changelog + release entry
         shell: bash
         env:
           VERSION: v${{ steps.bump.outputs.version }}
           PR_TITLE: ${{ github.event.pull_request.title }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           set -euo pipefail
+
+          DATE_UTC="$(date -u +%Y-%m-%d)"
+          ENTRY_FILE="$RUNNER_TEMP/release-entry.md"
+
+          PR_BODY_CLEAN="$(printf "%s" "${PR_BODY:-}" | tr -d '\r')"
+          PR_DESC="$(printf "%s\n" "$PR_BODY_CLEAN" | awk 'BEGIN{s=0} { if($0 ~ /^[[:space:]]*$/){ if(s==1){ exit } else { next } } s=1; print }')"
+
+          {
+            echo "## ${VERSION} (${DATE_UTC})"
+            echo ""
+            if [ -n "${PR_DESC}" ]; then
+              echo "${PR_DESC}"
+              echo ""
+            fi
+            echo "- [#${PR_NUMBER}](${PR_URL}) ${PR_TITLE}"
+            echo ""
+          } > "$ENTRY_FILE"
+
+      - name: Update CHANGELOG.md
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ENTRY_FILE="$RUNNER_TEMP/release-entry.md"
+          if [ ! -f "$ENTRY_FILE" ] || [ ! -s "$ENTRY_FILE" ]; then
+            echo "Missing release entry file: $ENTRY_FILE" >&2
+            exit 1
+          fi
 
           if [ ! -f CHANGELOG.md ] || [ ! -s CHANGELOG.md ]; then
             {
@@ -61,14 +90,10 @@ jobs:
             } > CHANGELOG.md
           fi
 
-          DATE_UTC="$(date -u +%Y-%m-%d)"
           TMP_FILE="$(mktemp)"
 
           {
-            echo "## ${VERSION} (${DATE_UTC})"
-            echo ""
-            echo "- [#${PR_NUMBER}](${PR_URL}) ${PR_TITLE}"
-            echo ""
+            cat "$ENTRY_FILE"
             cat CHANGELOG.md
           } > "$TMP_FILE"
 
@@ -120,25 +145,15 @@ jobs:
 
       - name: Prepare release notes from PR
         shell: bash
-        env:
-          VERSION: v${{ steps.bump.outputs.version }}
-          PR_TITLE: ${{ github.event.pull_request.title }}
-          PR_BODY: ${{ github.event.pull_request.body }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          {
-            echo "# ${VERSION}"
-            echo ""
-            echo "## ${PR_TITLE}"
-            echo ""
-            if [ -n "${PR_BODY}" ]; then
-              echo "${PR_BODY}"
-              echo ""
-            fi
-            echo "---"
-            echo ""
-            echo "Merged PR: #${PR_NUMBER}"
-          } > release-notes.md
+          set -euo pipefail
+          ENTRY_FILE="$RUNNER_TEMP/release-entry.md"
+          if [ ! -f "$ENTRY_FILE" ] || [ ! -s "$ENTRY_FILE" ]; then
+            echo "Missing release entry file: $ENTRY_FILE" >&2
+            exit 1
+          fi
+
+          cp "$ENTRY_FILE" release-notes.md
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
