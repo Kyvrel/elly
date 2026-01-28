@@ -53,7 +53,7 @@ export class WorkspaceManager {
   }
 
   setActiveWorkspace(workspaceId: string) {
-    db.update()
+    db.update(workspace).set({ isActive: false }).run()
     db.update(workspace).set({ isActive: true }).where(eq(workspace.id, workspaceId)).run()
   }
 }
