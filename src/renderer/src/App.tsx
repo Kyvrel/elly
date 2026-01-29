@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { api } from './lib/api'
 import Sidebar from './components/Sidebar'
 import { ChatThread } from './components/ChatThread'
+import { PermissionDialog } from './components/PermissionDialog'
 
 export interface SidebarProps {
   threads: any[]
@@ -29,6 +30,7 @@ function App(): React.JSX.Element {
 
   return (
     <div className="flex h-screen bg-gray-50">
+      <PermissionDialog />
       <Sidebar
         threads={threads}
         activeId={activeThreadId}

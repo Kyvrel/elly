@@ -13,3 +13,5 @@ export class ToolService {
     return tool.execute(args)
   }
 }
+
+export const toolService = new ToolService()
