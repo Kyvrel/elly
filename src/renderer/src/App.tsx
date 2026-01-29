@@ -28,6 +28,13 @@ function App(): React.JSX.Element {
     load()
   }, [])
 
+  const handleNewChat = async () => {
+    console.log('[handleNewChat]')
+    const thread: any = await api.threads.create({ title: 'new', model: 'google/gemini-2.5-flash' })
+    console.log('[handleNewChat] thread: ', thread)
+    setActiveThreadId(thread.id)
+  }
+
   return (
     <div className="flex h-screen bg-gray-50">
       <PermissionDialog />
@@ -35,7 +42,7 @@ function App(): React.JSX.Element {
         threads={threads}
         activeId={activeThreadId}
         onSelect={setActiveThreadId}
-        onNewChat={() => alert('New Chat here.')}
+        onNewChat={handleNewChat}
       />
 
       <ChatThread threadId={activeThreadId} />
