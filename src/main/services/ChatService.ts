@@ -1,7 +1,9 @@
 import WebSocket from 'ws'
 import { workspaceService } from './WorkspaceService'
-import { streamText } from 'ai'
+import { streamText, tool, stepCountIs } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
+import { toolRegister } from '../tools/registry'
+import { permissionManager } from './PermissionManager'
 
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
@@ -40,10 +42,13 @@ export class ChatService {
         throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
+      const tools = toolRegister.getAITools()
 
-      const { textStream } = await streamText({
+      const { textStream, toolCalls } = streamText({
         model: aiModel,
-        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content }))
+        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content })),
+        tools: tools as any,
+        stopWhen: stepCountIs(10)
       })
       let fullText = ''
       const ws = this.wsClients.get(threadId)
@@ -51,6 +56,45 @@ export class ChatService {
       for await (const chunk of textStream) {
         fullText += chunk
         ws?.send(JSON.stringify({ type: 'text', content: chunk }))
+      }
+
+      // Wait for all tool calls to complete
+      const allToolCalls = await toolCalls
+
+      for (const toolCall of allToolCalls) {
+        const tool = toolRegister.getTool(toolCall.toolName)
+        if (!tool) {
+          console.error(`there's no tool: `, toolCall)
+          continue
+        }
+
+        const approved = await permissionManager.requestPermission(tool, toolCall.args)
+        if (!approved) {
+          console.info(`tool call denied, tool: ${tool.name}`)
+          continue
+        }
+
+        // notify ui
+        ws?.send(
+          JSON.stringify({
+            type: 'tool-start',
+            toolName: toolCall.toolName,
+            params: toolCall.args
+          })
+        )
+
+        try {
+          const result = await tool.execute(toolCall.args)
+          ws?.send(
+            JSON.stringify({
+              type: 'tool-result',
+              toolName: toolCall.toolName,
+              result
+            })
+          )
+        } catch (error: any) {
+          ws?.send(JSON.stringify({ type: 'tool-error', error: error.message }))
+        }
       }
 
       workspaceService.insertMessage({
