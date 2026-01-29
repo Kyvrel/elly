@@ -3,12 +3,6 @@ import { useEffect, useState } from 'react'
 export function PermissionDialog() {
   const [request, setRequest] = useState<any>(null)
   useEffect(() => {
-    // Safety check for browser dev environment
-    if (!window.electron) {
-      console.warn('Electron IPC not found. PermissionDialog disabled.')
-      return
-    }
-
     const removeListener = window.electron.ipcRenderer.on('tool:permission-required', (_, req) => {
       setRequest(req)
     })
