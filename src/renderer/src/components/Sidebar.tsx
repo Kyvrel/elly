@@ -13,7 +13,9 @@ export default function Sidebar({ threads, activeId, onSelect, onNewChat }: Side
         {threads.map((thread) => (
           <div
             key={thread.id}
-            className="p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700"
+            className={`p-2 rounded hover:bg-gray-200 cursor-pointer text-sm text-gray-700 ${
+              thread.id === activeId ? 'bg-gray-200' : ''
+            }`}
             onClick={() => onSelect(thread.id)}
           >
             {thread.title}

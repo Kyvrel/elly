@@ -1,7 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../db'
 import {
-  AppSetting,
   appSettings,
   ChatMessage,
   chatMessages,
@@ -47,18 +46,19 @@ export class WorkspaceService {
 
   createThreads(title: string, model: string) {
     const now = new Date()
-    return db
-      .insert(chatThreads)
-      .values({
-        id: nanoid(),
-        title,
-        model,
-        isGenerating: false,
-        isFavorited: false,
-        createdAt: now,
-        updatedAt: now
-      })
-      .run()
+    const thread: ChatThread = {
+      id: nanoid(),
+      title,
+      model,
+      isGenerating: false,
+      isFavorited: false,
+      workspaceId: null,
+      createdAt: now,
+      updatedAt: now
+    }
+
+    db.insert(chatThreads).values(thread).run()
+    return thread
   }
 
   updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>) {

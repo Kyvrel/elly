@@ -33,6 +33,7 @@ function App(): React.JSX.Element {
     const thread: any = await api.threads.create({ title: 'new', model: 'google/gemini-2.5-flash' })
     console.log('[handleNewChat] thread: ', thread)
     setActiveThreadId(thread.id)
+    setThreads((prev) => [thread, ...prev])
   }
 
   return (
