@@ -14,6 +14,7 @@ export const ReadFileTool: ToolDefinition = {
   execute: async ({ file_path }) => {
     const absolutePath = workspaceManager.resolvePath(file_path)
     const content = await readFile(absolutePath, 'utf8')
+    console.log('ReadFileTool called, content: ', content)
     return { success: true, data: content }
   }
 }

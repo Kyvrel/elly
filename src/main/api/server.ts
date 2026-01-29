@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import { workspaceService } from '../services/WorkspaceService.js'
 import { chatService } from '../services/ChatService.js'
+import { workspaceManager } from '../services/WorkspaceManager.js'
 
 const API_PORT = 23001
 
@@ -82,6 +83,40 @@ export function createApiServer() {
   app.put('/api/settings', (req, res) => {
     workspaceService.updateSettings(req.body)
     res.json({ success: true })
+  })
+
+  // ===== Workspaces =====
+
+  app.get('/api/workspaces', (req, res) => {
+    const workspaces = workspaceService.getAllWorkspaces()
+    res.json(workspaces)
+  })
+
+  app.post('/api/workspaces', async (req, res) => {
+    try {
+      const { name, path } = req.body
+      const workspace = await workspaceManager.createWorkspace(name, path)
+      res.status(201).json(workspace)
+    } catch (error: any) {
+      res.status(400).json({ error: error.message })
+    }
+  })
+
+  app.put('/api/workspaces/:id/activate', (req, res) => {
+    try {
+      workspaceManager.setActiveWorkspace(req.params.id)
+      res.json({ success: true })
+    } catch (error: any) {
+      res.status(400).json({ error: error.message })
+    }
+  })
+
+  app.get('/api/workspaces/active', (req, res) => {
+    const workspace = workspaceManager.getActiveWorkspace()
+    if (!workspace) {
+      return res.status(404).json({ error: 'No active workspace' })
+    }
+    res.json(workspace)
   })
 
   // ===== Chat Completions（触发流式响应） =====

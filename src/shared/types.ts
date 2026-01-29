@@ -1,4 +1,4 @@
-export type { ChatMessage, ChatThread, Provider, AppSettings } from '../main/db/schema'
+export type { ChatMessage, ChatThread, Provider } from '../main/db/schema'
 
 export interface CreateThreadRequest {
   title: string

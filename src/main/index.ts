@@ -6,6 +6,7 @@ import { initDatabase } from './db'
 import { createApiServer } from './api/server'
 import { createWebSocketServer } from './services/WebSocketService'
 import { setupIPCHandlers } from './ipc/handlers'
+import { workspaceManager } from './services/WorkspaceManager'
 
 let mainWindow: BrowserWindow | null = null
 
@@ -44,8 +45,10 @@ function createWindow(): void {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   initDatabase()
+
+  await workspaceManager.ensureActiveWorkspace()
 
   createApiServer()
 

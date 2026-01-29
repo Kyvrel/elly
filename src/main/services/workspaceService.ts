@@ -7,9 +7,12 @@ import {
   ChatThread,
   chatThreads,
   Provider,
-  providers
+  providers,
+  workspace,
+  Workspace
 } from '../db/schema'
 import { nanoid } from 'nanoid'
+import { desc } from 'drizzle-orm'
 
 export class WorkspaceService {
   // ===== Providers =====
@@ -37,7 +40,7 @@ export class WorkspaceService {
 
   // ===== Threads =====
   getAllThreads() {
-    return db.select().from(chatThreads).all()
+    return db.select().from(chatThreads).orderBy(desc(chatThreads.createdAt)).all()
   }
 
   getThreadsById(id: string): ChatThread | undefined {
@@ -108,6 +111,20 @@ export class WorkspaceService {
         set: { settingsData: setting, updatedAt: now }
       })
       .run()
+  }
+
+  // ===== Workspaces =====
+
+  getAllWorkspaces() {
+    return db.select().from(workspace).all()
+  }
+
+  getWorkspaceById(id: string): Workspace | undefined {
+    return db.select().from(workspace).where(eq(workspace.id, id)).get()
+  }
+
+  getActiveWorkspace(): Workspace | undefined {
+    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
   }
 }
 

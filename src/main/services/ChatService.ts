@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
 import { workspaceService } from './WorkspaceService'
-import { streamText, tool, stepCountIs } from 'ai'
+import { streamText, stepCountIs } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
 import { permissionManager } from './PermissionManager'
@@ -42,12 +42,13 @@ export class ChatService {
         throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
-      const tools = toolRegister.getAITools()
+      const tools = toolRegister.getToolsForAI()
+      console.log('[ChatService] tools:', Object.keys(tools))
 
       const { textStream, toolCalls } = streamText({
         model: aiModel,
         messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content })),
-        tools: tools as any,
+        tools,
         stopWhen: stepCountIs(10)
       })
       let fullText = ''
@@ -55,11 +56,14 @@ export class ChatService {
 
       for await (const chunk of textStream) {
         fullText += chunk
+        console.log('[ChatService] textStream:', fullText)
         ws?.send(JSON.stringify({ type: 'text', content: chunk }))
       }
 
       // Wait for all tool calls to complete
       const allToolCalls = await toolCalls
+
+      console.log('[ChatService] allToolCalls:', allToolCalls)
 
       for (const toolCall of allToolCalls) {
         const tool = toolRegister.getTool(toolCall.toolName)
@@ -67,6 +71,7 @@ export class ChatService {
           console.error(`there's no tool: `, toolCall)
           continue
         }
+        console.log('tool.name', tool?.name)
 
         // Get args from toolCall (handle both static and dynamic)
         const args = 'args' in toolCall ? toolCall.args : undefined

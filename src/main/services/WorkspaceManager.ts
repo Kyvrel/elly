@@ -60,6 +60,16 @@ export class WorkspaceManager {
     db.update(workspace).set({ isActive: false }).run()
     db.update(workspace).set({ isActive: true }).where(eq(workspace.id, workspaceId)).run()
   }
+
+  async ensureActiveWorkspace() {
+    const activeWorkspace = this.getActiveWorkspace()
+    if (!activeWorkspace) {
+      const cwd = process.cwd()
+      const defaultWorkspace = await this.createWorkspace('Default', cwd)
+      this.setActiveWorkspace(defaultWorkspace.id)
+      console.log(`Created default workspace at: ${cwd}`)
+    }
+  }
 }
 
 export const workspaceManager = new WorkspaceManager()
