@@ -8,6 +8,7 @@ out
 *-output
 *.db
 *-notes
+.devtools
 
 # SQLite database files
 *.db
