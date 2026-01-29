@@ -1,5 +1,4 @@
 import { ToolDefinition } from '../../shared/types-tools'
-import { zodToJsonSchema } from 'zod-to-json-schema'
 
 export class ToolRegistry {
   private tools = new Map<string, ToolDefinition>()
@@ -13,13 +12,15 @@ export class ToolRegistry {
   }
 
   getAITools() {
-    return this.tools.values().map((tool) => ({
+    return Array.from(this.tools.values()).map((tool) => ({
       type: 'function',
       function: {
         name: tool.name,
         description: tool.description,
-        parameters: zodToJsonSchema(tool.parameters)
+        parameters: tool.parameters.toJSONSchema()
       }
     }))
   }
 }
+
+export const toolRegister = new ToolRegistry()
