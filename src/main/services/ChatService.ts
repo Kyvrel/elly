@@ -68,7 +68,10 @@ export class ChatService {
           continue
         }
 
-        const approved = await permissionManager.requestPermission(tool, toolCall.args)
+        // Get args from toolCall (handle both static and dynamic)
+        const args = 'args' in toolCall ? toolCall.args : undefined
+
+        const approved = await permissionManager.requestPermission(tool, args)
         if (!approved) {
           console.info(`tool call denied, tool: ${tool.name}`)
           continue
@@ -79,12 +82,12 @@ export class ChatService {
           JSON.stringify({
             type: 'tool-start',
             toolName: toolCall.toolName,
-            params: toolCall.args
+            params: args
           })
         )
 
         try {
-          const result = await tool.execute(toolCall.args)
+          const result = await tool.execute(args)
           ws?.send(
             JSON.stringify({
               type: 'tool-result',
