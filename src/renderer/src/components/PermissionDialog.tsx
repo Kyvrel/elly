@@ -3,16 +3,13 @@ import { useEffect, useState } from 'react'
 export function PermissionDialog() {
   const [request, setRequest] = useState<any>(null)
   useEffect(() => {
-    const removeListener = window.electron.ipcRenderer.on('tool:permission-required', (_, req) => {
+    const removeListener = window.api.onPermissionRequired((req) => {
       setRequest(req)
     })
     return () => removeListener()
   }, [])
   const respond = (decision: string) => {
-    window.electron.ipcRenderer.invoke('tool:permission-decision', {
-      requestId: request.id,
-      decision
-    })
+    window.api.sendPermissionDecision(request.id, decision)
     setRequest(null)
   }
   if (!request) return null

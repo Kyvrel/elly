@@ -15,7 +15,16 @@ const api = {
   clipboardReadText: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_READ_TEXT),
 
   // external url
-  openExternalUrl: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url)
+  openExternalUrl: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url),
+
+  // tool permissions
+  onPermissionRequired: (callback: (request: any) => void) => {
+    const listener = (_: any, request: any) => callback(request)
+    ipcRenderer.on('tool:permission-required', listener)
+    return () => ipcRenderer.removeListener('tool:permission-required', listener)
+  },
+  sendPermissionDecision: (requestId: string, decision: string) =>
+    ipcRenderer.invoke('tool:permission-decision', { requestId, decision })
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
