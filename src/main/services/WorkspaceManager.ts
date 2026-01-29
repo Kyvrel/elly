@@ -28,6 +28,10 @@ export class WorkspaceManager {
     if (!resolvedPath.startsWith(activeWorkspace.path)) {
       throw new Error('Access Denied: Path traversal detected')
     }
+
+    if (this.isSensitiveFile(resolvedPath)) {
+      throw new Error('Access Denied: Sensitive file')
+    }
     return resolvedPath
   }
 
