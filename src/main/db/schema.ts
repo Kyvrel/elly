@@ -1,5 +1,6 @@
 import { int, sqliteTable, text } from 'drizzle-orm/sqlite-core'
 import { sql } from 'drizzle-orm'
+import { UIMessage } from 'ai'
 
 const timestamps = {
   createdAt: int({ mode: 'timestamp' })
@@ -38,12 +39,7 @@ export const chatMessages = sqliteTable('chat_messages', {
     .notNull()
     .references(() => chatThreads.id, { onDelete: 'cascade' }),
   parentId: text('parent_id'),
-  message: text('message', { mode: 'json' })
-    .$type<{
-      role: 'user' | 'system' | 'assistant'
-      content: string
-    }>()
-    .notNull(),
+  message: text('message', { mode: 'json' }).$type<UIMessage>().notNull(),
   ...timestamps
 })
 

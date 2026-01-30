@@ -1,9 +1,10 @@
 import WebSocket from 'ws'
 import { workspaceService } from './WorkspaceService'
-import { streamText, stepCountIs } from 'ai'
+import { streamText, stepCountIs, UIMessage, convertToModelMessages } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
 
+import { nanoid } from 'nanoid'
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
   registerWSClient(threadId: string, ws: WebSocket) {
@@ -21,10 +22,23 @@ export class ChatService {
       `ChatService.sendMessage called for threadId: ${threadId}, message: "${message}", model: "${model}"`
     )
     try {
+      const userMessageId = nanoid()
+      const userMessage: UIMessage = {
+        id: userMessageId,
+        role: 'user',
+        parts: [
+          {
+            type: 'text',
+            text: message,
+            state: 'done'
+          }
+        ]
+      }
       workspaceService.insertMessage({
+        id: `${threadId}--${userMessageId}`,
         threadId,
         parentId: null,
-        message: { role: 'user', content: message }
+        message: userMessage
       })
 
       workspaceService.updateThread(threadId, {
@@ -46,7 +60,7 @@ export class ChatService {
 
       const result = streamText({
         model: aiModel,
-        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content })),
+        messages: await convertToModelMessages(messages.map((msg) => msg.message)),
         tools,
         stopWhen: stepCountIs(10),
         onFinish: async ({ steps }) => {
@@ -101,10 +115,23 @@ export class ChatService {
         ws?.send(JSON.stringify({ type: 'text', content: chunk }))
       }
 
+      const assistantMessageId = nanoid()
+      const uiMessage: UIMessage = {
+        id: assistantMessageId,
+        role: 'assistant',
+        parts: [
+          {
+            type: 'text',
+            text: fullText,
+            state: 'done'
+          }
+        ]
+      }
       workspaceService.insertMessage({
+        id: `${threadId}--${assistantMessageId}`,
         threadId,
         parentId: null,
-        message: { role: 'assistant', content: fullText }
+        message: uiMessage
       })
 
       workspaceService.updateThread(threadId, { isGenerating: false })

@@ -83,9 +83,9 @@ export class WorkspaceService {
     return db.select().from(chatMessages).where(eq(chatMessages.threadId, threadId)).all()
   }
 
-  insertMessage(msg: Omit<ChatMessage, 'id' | 'createdAt' | 'updatedAt'>): ChatMessage {
+  insertMessage(msg: Omit<ChatMessage, 'createdAt' | 'updatedAt'>): ChatMessage {
     const now = new Date()
-    const messsage = { id: nanoid(), ...msg, createdAt: now, updatedAt: now }
+    const messsage = { ...msg, createdAt: now, updatedAt: now }
     db.insert(chatMessages).values(messsage).run()
     return messsage
   }

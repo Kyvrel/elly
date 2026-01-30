@@ -9,12 +9,18 @@ export interface ChatInputProps {
   onType: (input: string) => void
 }
 
-export const formatMsg = (data) => {
-  return data.map((item) => ({
-    id: item.id,
-    role: item.message.role,
-    content: item.message.content
-  }))
+export const formatMessages = (messages) => {
+  return messages.map((item) => {
+    const content = item.message.parts
+      .filter((part) => part.type == 'text')
+      .map((part) => part.text)
+      .join('')
+    return {
+      id: item.message.id,
+      role: item.message.role,
+      content
+    }
+  })
 }
 
 export function ChatThread({ threadId }: ChatThreadProps) {
@@ -34,7 +40,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
     if (!threadId) return
     const load = async () => {
       const data = await api.messages.getByThread(threadId)
-      const formattedMsgs = formatMsg(data)
+      const formattedMsgs = formatMessages(data)
       setMessages(formattedMsgs)
     }
     load()
@@ -58,7 +64,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
     })
 
     const data = await api.messages.getByThread(threadId)
-    setMessages(formatMsg(data))
+    setMessages(formatMessages(data))
   }
 
   useEffect(() => {
@@ -79,7 +85,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
         setStreamingContent((prev) => prev + data.content)
       } else if (data.type === 'done') {
         setStreamingContent('')
-        api.messages.getByThread(threadId).then((d) => setMessages(formatMsg(d)))
+        api.messages.getByThread(threadId).then((d) => setMessages(formatMessages(d)))
       }
     }
     return () => ws.close()
