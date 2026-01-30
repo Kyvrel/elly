@@ -3,7 +3,6 @@ import { z } from 'zod'
 import { workspaceManager } from '../services/WorkspaceManager'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import { stderr, stdout } from 'process'
 
 const execAsync = promisify(exec)
 
@@ -29,14 +28,17 @@ export const BashTool: ToolDefinition = {
   needPermission: true,
   parameters: BashSchema,
   execute: async (params) => {
-    try {
-      const { command, timeout } = BashSchema.parse(params)
-      if (DANGEROUS_PATTERNS.some((pattern) => pattern.test(command))) {
-        return { success: false, error: 'Dangerous command blocked' }
-      }
-      const workspace = workspaceManager.getActiveWorkspace()
-      const cwd = workspace?.path || process.cwd()
+    const { command, timeout } = BashSchema.parse(params)
 
+    // Check for dangerous patterns
+    if (DANGEROUS_PATTERNS.some((pattern) => pattern.test(command))) {
+      throw new Error('Dangerous command blocked')
+    }
+
+    const workspace = workspaceManager.getActiveWorkspace()
+    const cwd = workspace?.path || process.cwd()
+
+    try {
       const { stdout, stderr } = await execAsync(command, {
         cwd,
         timeout,
@@ -55,15 +57,10 @@ export const BashTool: ToolDefinition = {
         }
       }
     } catch (error: any) {
-      return {
-        success: false,
-        error: error.message,
-        data: {
-          stdout: error.stdout?.trim() || '',
-          stderr: error.stderr?.trim() || '',
-          exit_code: error.code || 1
-        }
-      }
+      // Re-throw with more context
+      throw new Error(
+        `Command failed: ${error.message}\nstdout: ${error.stdout?.trim() || ''}\nstderr: ${error.stderr?.trim() || ''}`
+      )
     }
   }
 }

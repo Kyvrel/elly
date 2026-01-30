@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '.././lib/api'
 import { ChatThreadProps } from '@renderer/App'
 import ChatInput from './ChatInput'
+import type { UIMessagePart, UIDataTypes, UITools } from 'ai'
 
 export interface ChatInputProps {
   onSend: () => void
@@ -81,8 +82,14 @@ export function ChatThread({ threadId }: ChatThreadProps) {
       console.log('ws onMessage data:', event.data)
       const data = JSON.parse(event.data)
 
-      if (data.type === 'text') {
-        setStreamingContent((prev) => prev + data.content)
+      if (data.type === 'message_update') {
+        // Extract text from parts array
+        const textContent = data.parts
+          .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text')
+          .map((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text' ? part.text : '')
+          .join('')
+
+        setStreamingContent(textContent)
       } else if (data.type === 'done') {
         setStreamingContent('')
         api.messages.getByThread(threadId).then((d) => setMessages(formatMessages(d)))

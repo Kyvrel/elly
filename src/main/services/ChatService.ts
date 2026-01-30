@@ -1,6 +1,15 @@
 import WebSocket from 'ws'
 import { workspaceService } from './WorkspaceService'
-import { streamText, stepCountIs, UIMessage, convertToModelMessages, readUIMessageStream } from 'ai'
+import {
+  streamText,
+  stepCountIs,
+  UIMessage,
+  convertToModelMessages,
+  readUIMessageStream,
+  type UIMessagePart,
+  type UIDataTypes,
+  type UITools
+} from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
 
@@ -37,43 +46,8 @@ export class ChatService {
         messages: await convertToModelMessages(messages.map((msg) => msg.message)),
         tools,
         stopWhen: stepCountIs(10),
-        onFinish: async ({ steps }) => {
-          console.log('[ChatService] onFinish steps:', steps)
-
-          const ws = this.wsClients.get(threadId)
-          for (const step of steps) {
-            if (step.toolCalls) {
-              for (const toolCall of step.toolCalls) {
-                if (toolCall.dynamic) {
-                  continue
-                }
-
-                ws?.send(
-                  JSON.stringify({
-                    type: 'tool-call',
-                    toolName: toolCall.toolName,
-                    input: toolCall.input
-                  })
-                )
-              }
-            }
-            if (step.toolResults) {
-              for (const toolResult of step.toolResults) {
-                if (toolResult.dynamic) {
-                  continue
-                }
-
-                ws?.send(
-                  JSON.stringify({
-                    type: 'tool-result',
-                    toolName: toolResult.toolName,
-                    input: toolResult.input,
-                    output: toolResult.output
-                  })
-                )
-              }
-            }
-          }
+        onError({ error }) {
+          console.error('An error occurred streamText:', error) // Your error logging logic here
         }
       })
 
@@ -131,24 +105,22 @@ export class ChatService {
     return { aiModel, tools }
   }
 
-  private broadcastMessagePart(threadId: string, part: any) {
+  private broadcastMessageUpdate(
+    threadId: string,
+    messageId: string,
+    parts: Array<UIMessagePart<UIDataTypes, UITools>>
+  ) {
     const ws = this.wsClients.get(threadId)
 
-    if (part.type === 'text') {
-      ws?.send(JSON.stringify({ type: 'text', content: part.text }))
-    } else if (part.type.startsWith('tool-')) {
-      ws?.send(
-        JSON.stringify({
-          type: 'tool-call',
-          toolCallId: part.toolCallId,
-          toolName: part.toolName,
-          state: part.state,
-          input: part.input,
-          output: part.output,
-          errorText: part.errorText
-        })
-      )
-    }
+    ws?.send(
+      JSON.stringify({
+        type: 'message_update',
+        messageId,
+        threadId,
+        parts,
+        timestamp: new Date().toISOString()
+      })
+    )
   }
 
   private async handleMessageStream(threadId: string, stream: AsyncIterable<UIMessage>) {
@@ -176,9 +148,8 @@ export class ChatService {
         workspaceService.updateMessage(dbMessageId, uiMessage)
       }
 
-      for (const part of message.parts) {
-        this.broadcastMessagePart(threadId, part)
-      }
+      // Send complete parts array via WebSocket
+      this.broadcastMessageUpdate(threadId, assistantMessageId, message.parts)
     }
   }
 

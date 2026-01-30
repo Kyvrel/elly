@@ -14,13 +14,17 @@ export const WriteFileTool: ToolDefinition = {
     content: z.string()
   }),
   execute: async ({ file_path, content }) => {
-    const absolutePath = workspaceManager.resolvePath(file_path)
-    await mkdir(dirname(absolutePath), { recursive: true })
-    await writeFile(absolutePath, content, 'utf-8')
-    return {
-      success: true,
-      data: { written: true, path: file_path },
-      metadata: { bytes: Buffer.byteLength(content) }
+    try {
+      const absolutePath = workspaceManager.resolvePath(file_path)
+      await mkdir(dirname(absolutePath), { recursive: true })
+      await writeFile(absolutePath, content, 'utf-8')
+      return {
+        success: true,
+        data: { written: true, path: file_path },
+        metadata: { bytes: Buffer.byteLength(content) }
+      }
+    } catch (error: any) {
+      throw new Error(`Failed to write file ${file_path}: ${error.message}`)
     }
   }
 }

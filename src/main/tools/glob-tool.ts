@@ -16,8 +16,12 @@ export const GlobTool: ToolDefinition = {
     pattern: z.string()
   }),
   execute: async ({ pattern }) => {
-    const workspace = workspaceManager.getActiveWorkspace()
-    const files = await glob(pattern, { cwd: workspace?.path })
-    return { success: true, data: files }
+    try {
+      const workspace = workspaceManager.getActiveWorkspace()
+      const files = await glob(pattern, { cwd: workspace?.path })
+      return { success: true, data: files }
+    } catch (error: any) {
+      throw new Error(`Failed to glob pattern ${pattern}: ${error.message}`)
+    }
   }
 }

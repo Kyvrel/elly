@@ -28,10 +28,7 @@ export class ToolRegistry {
           if (toolDef.needPermission) {
             const approved = await permissionManager.requestPermission(toolDef, params)
             if (!approved) {
-              return {
-                success: false,
-                error: 'Permission denied by user'
-              }
+              throw new Error('Permission denied by user')
             }
           }
 
