@@ -1,6 +1,6 @@
 import WebSocket from 'ws'
 import { workspaceService } from './WorkspaceService'
-import { streamText, stepCountIs, UIMessage, convertToModelMessages } from 'ai'
+import { streamText, stepCountIs, UIMessage, convertToModelMessages, readUIMessageStream } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
 
@@ -106,33 +106,44 @@ export class ChatService {
         }
       })
 
-      let fullText = ''
       const ws = this.wsClients.get(threadId)
-
-      for await (const chunk of result.textStream) {
-        fullText += chunk
-        console.log('[ChatService] textStream:', fullText)
-        ws?.send(JSON.stringify({ type: 'text', content: chunk }))
-      }
-
-      const assistantMessageId = nanoid()
-      const uiMessage: UIMessage = {
-        id: assistantMessageId,
-        role: 'assistant',
-        parts: [
-          {
-            type: 'text',
-            text: fullText,
-            state: 'done'
+      let finalMessage: UIMessage | null = null
+      for await (const message of readUIMessageStream({ stream: result.toUIMessageStream() })) {
+        console.log('[ChatService] UIMessage:', message)
+        finalMessage = message
+        for (const part of message.parts) {
+          if (part.type == 'text') {
+            ws?.send(JSON.stringify({ type: 'text', content: part.text }))
+          } else if (part.type.startsWith('tool-')) {
+            const toolPart = part as any
+            ws?.send(
+              JSON.stringify({
+                type: 'tool-call',
+                toolCallId: toolPart.toolCallId,
+                toolName: toolPart.toolName,
+                state: toolPart.state,
+                input: toolPart.input,
+                output: toolPart.output,
+                errorText: toolPart.errorText
+              })
+            )
           }
-        ]
+        }
       }
-      workspaceService.insertMessage({
-        id: `${threadId}--${assistantMessageId}`,
-        threadId,
-        parentId: null,
-        message: uiMessage
-      })
+      if (finalMessage) {
+        const assistantMessageId = nanoid()
+        const uiMessage: UIMessage = {
+          id: assistantMessageId,
+          role: 'assistant',
+          parts: finalMessage.parts
+        }
+        workspaceService.insertMessage({
+          id: `${threadId}--${assistantMessageId}`,
+          threadId,
+          parentId: null,
+          message: uiMessage
+        })
+      }
 
       workspaceService.updateThread(threadId, { isGenerating: false })
       ws?.send(JSON.stringify({ type: 'done' }))
