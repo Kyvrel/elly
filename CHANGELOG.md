@@ -1,3 +1,7 @@
+## v0.0.11 (2026-01-30)
+
+- [#14](https://github.com/Kyvrel/elly/pull/14) Adopt `UIMessage` from `ai` for chat messages, updating schema,
+
 ## v0.0.10 (2026-01-30)
 
 1. Core Tool System
