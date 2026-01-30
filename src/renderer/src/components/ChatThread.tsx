@@ -3,6 +3,12 @@ import { api } from '.././lib/api'
 import { ChatThreadProps } from '@renderer/App'
 import ChatInput from './ChatInput'
 import type { UIMessagePart, UIDataTypes, UITools } from 'ai'
+import {
+  WS_CLIENT_MESSAGE_TYPES,
+  type WSServerMessage,
+  isMessageUpdate,
+  isDoneMessage
+} from '../../../shared/types-websocket'
 
 export interface ChatInputProps {
   onSend: () => void
@@ -76,14 +82,14 @@ export function ChatThread({ threadId }: ChatThreadProps) {
 
     ws.onopen = () => {
       console.log('connected to ws')
-      ws.send(JSON.stringify({ type: 'register', threadId: threadId }))
+      ws.send(JSON.stringify({ type: WS_CLIENT_MESSAGE_TYPES.REGISTER, threadId: threadId }))
     }
 
     ws.onmessage = (event) => {
       console.log('ws onMessage data:', event.data)
-      const data = JSON.parse(event.data)
+      const data: WSServerMessage = JSON.parse(event.data)
 
-      if (data.type === 'message_update') {
+      if (isMessageUpdate(data)) {
         // Extract text from parts array
         const textContent = data.parts
           .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text')
@@ -91,7 +97,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
           .join('')
 
         setStreamingContent(textContent)
-      } else if (data.type === 'done') {
+      } else if (isDoneMessage(data)) {
         setStreamingContent('')
         api.messages.getByThread(threadId).then((d) => setMessages(formatMessages(d)))
       }

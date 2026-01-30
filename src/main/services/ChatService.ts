@@ -12,6 +12,12 @@ import {
 } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
+import {
+  WS_SERVER_MESSAGE_TYPES,
+  type WSServerMessageUpdate,
+  type WSServerDoneMessage,
+  type WSServerErrorMessage
+} from '../../shared/types-websocket'
 
 import { nanoid } from 'nanoid'
 export class ChatService {
@@ -57,7 +63,11 @@ export class ChatService {
       )
 
       workspaceService.updateThread(threadId, { isGenerating: false })
-      this.wsClients.get(threadId)?.send(JSON.stringify({ type: 'done' }))
+
+      const doneMessage: WSServerDoneMessage = {
+        type: WS_SERVER_MESSAGE_TYPES.DONE
+      }
+      this.wsClients.get(threadId)?.send(JSON.stringify(doneMessage))
 
       return { success: true }
     } catch (error: any) {
@@ -112,15 +122,15 @@ export class ChatService {
   ) {
     const ws = this.wsClients.get(threadId)
 
-    ws?.send(
-      JSON.stringify({
-        type: 'message_update',
-        messageId,
-        threadId,
-        parts,
-        timestamp: new Date().toISOString()
-      })
-    )
+    const message: WSServerMessageUpdate = {
+      type: WS_SERVER_MESSAGE_TYPES.MESSAGE_UPDATE,
+      messageId,
+      threadId,
+      parts,
+      timestamp: new Date().toISOString()
+    }
+
+    ws?.send(JSON.stringify(message))
   }
 
   private async handleMessageStream(threadId: string, stream: AsyncIterable<UIMessage>) {
@@ -158,7 +168,11 @@ export class ChatService {
     workspaceService.updateThread(threadId, { isGenerating: false })
 
     const ws = this.wsClients.get(threadId)
-    ws?.send(JSON.stringify({ type: 'error', message: error.message }))
+    const errorMessage: WSServerErrorMessage = {
+      type: WS_SERVER_MESSAGE_TYPES.ERROR,
+      message: error.message
+    }
+    ws?.send(JSON.stringify(errorMessage))
   }
 }
 
