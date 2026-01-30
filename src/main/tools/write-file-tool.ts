@@ -8,7 +8,7 @@ export const WriteFileTool: ToolDefinition = {
   name: 'write_file',
   description: 'Write content to a file. Overwrites if exists.',
   category: ToolCategory.WRITE,
-  requiresApproval: true, // Must be TRUE for write
+  needPermission: true, // Must be TRUE for write
   parameters: z.object({
     file_path: z.string(),
     content: z.string()

@@ -25,7 +25,9 @@ export class WorkspaceManager {
     }
 
     const resolvedPath = path.resolve(activeWorkspace.path, relativePath)
-    if (!resolvedPath.startsWith(activeWorkspace.path)) {
+    const relativeToCwd = path.relative(activeWorkspace.path, resolvedPath)
+
+    if (relativeToCwd.startsWith('..') || path.isAbsolute(relativeToCwd)) {
       throw new Error('Access Denied: Path traversal detected')
     }
 

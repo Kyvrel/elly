@@ -19,7 +19,7 @@ export interface ToolDefinition {
   name: string
   description: string
   category: ToolCategory
-  requiresApproval: boolean
+  needPermission: boolean
   parameters: z.ZodSchema
   execute: (params: any) => Promise<ToolResult>
 }

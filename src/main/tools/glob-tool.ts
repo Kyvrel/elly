@@ -11,7 +11,7 @@ export const GlobTool: ToolDefinition = {
   name: 'glob',
   description: 'glob the files',
   category: ToolCategory.SEARCH,
-  requiresApproval: false,
+  needPermission: true,
   parameters: z.object({
     pattern: z.string()
   }),

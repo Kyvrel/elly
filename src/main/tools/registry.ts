@@ -4,6 +4,7 @@ import { GlobTool } from './glob-tool'
 import { ReadFileTool } from './read-file-tool'
 import { WriteFileTool } from './write-file-tool'
 import { tool } from 'ai'
+import { permissionManager } from '../services/PermissionManager'
 
 export class ToolRegistry {
   private tools = new Map<string, ToolDefinition>()
@@ -22,7 +23,19 @@ export class ToolRegistry {
       aiTools[name] = tool({
         description: toolDef.description,
         inputSchema: toolDef.parameters,
-        execute: async (params) => {
+        execute: async (params, context) => {
+          // Request permission before executing
+          if (toolDef.needPermission) {
+            const approved = await permissionManager.requestPermission(toolDef, params)
+            if (!approved) {
+              return {
+                success: false,
+                error: 'Permission denied by user'
+              }
+            }
+          }
+
+          // Execute the tool
           const result = await toolDef.execute(params)
           return result
         }

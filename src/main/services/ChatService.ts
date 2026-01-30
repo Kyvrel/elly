@@ -3,7 +3,6 @@ import { workspaceService } from './WorkspaceService'
 import { streamText, stepCountIs } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
-import { permissionManager } from './PermissionManager'
 
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
@@ -45,64 +44,61 @@ export class ChatService {
       const tools = toolRegister.getToolsForAI()
       console.log('[ChatService] tools:', Object.keys(tools))
 
-      const { textStream, toolCalls } = streamText({
+      const result = streamText({
         model: aiModel,
         messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content })),
         tools,
-        stopWhen: stepCountIs(10)
+        stopWhen: stepCountIs(10),
+        onFinish: async ({ steps }) => {
+          // Log all tool calls and results from all steps
+          console.log('[ChatService] onFinish steps:', steps)
+
+          const ws = this.wsClients.get(threadId)
+          for (const step of steps) {
+            if (step.toolCalls) {
+              for (const toolCall of step.toolCalls) {
+                // Skip dynamic tools
+                if (toolCall.dynamic) {
+                  continue
+                }
+
+                ws?.send(
+                  JSON.stringify({
+                    type: 'tool-call',
+                    toolName: toolCall.toolName,
+                    input: toolCall.input
+                  })
+                )
+              }
+            }
+            if (step.toolResults) {
+              for (const toolResult of step.toolResults) {
+                // Skip dynamic tools (tools without execute function)
+                if (toolResult.dynamic) {
+                  continue
+                }
+
+                ws?.send(
+                  JSON.stringify({
+                    type: 'tool-result',
+                    toolName: toolResult.toolName,
+                    input: toolResult.input,
+                    output: toolResult.output
+                  })
+                )
+              }
+            }
+          }
+        }
       })
+
       let fullText = ''
       const ws = this.wsClients.get(threadId)
 
-      for await (const chunk of textStream) {
+      for await (const chunk of result.textStream) {
         fullText += chunk
         console.log('[ChatService] textStream:', fullText)
         ws?.send(JSON.stringify({ type: 'text', content: chunk }))
-      }
-
-      // Wait for all tool calls to complete
-      const allToolCalls = await toolCalls
-
-      console.log('[ChatService] allToolCalls:', allToolCalls)
-
-      for (const toolCall of allToolCalls) {
-        const tool = toolRegister.getTool(toolCall.toolName)
-        if (!tool) {
-          console.error(`there's no tool: `, toolCall)
-          continue
-        }
-        console.log('tool.name', tool?.name)
-
-        // Get args from toolCall (handle both static and dynamic)
-        const args = 'args' in toolCall ? toolCall.args : undefined
-
-        const approved = await permissionManager.requestPermission(tool, args)
-        if (!approved) {
-          console.info(`tool call denied, tool: ${tool.name}`)
-          continue
-        }
-
-        // notify ui
-        ws?.send(
-          JSON.stringify({
-            type: 'tool-start',
-            toolName: toolCall.toolName,
-            params: args
-          })
-        )
-
-        try {
-          const result = await tool.execute(args)
-          ws?.send(
-            JSON.stringify({
-              type: 'tool-result',
-              toolName: toolCall.toolName,
-              result
-            })
-          )
-        } catch (error: any) {
-          ws?.send(JSON.stringify({ type: 'tool-error', error: error.message }))
-        }
       }
 
       workspaceService.insertMessage({

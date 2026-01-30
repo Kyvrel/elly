@@ -20,7 +20,7 @@ export class PermissionManager extends EventEmitter {
   private autoApprovals = new Set<string>()
 
   requestPermission(tool: ToolDefinition, params: any) {
-    if (!tool.requiresApproval) return true
+    if (!tool.needPermission) return true
 
     if (this.autoApprovals.has(tool.name)) {
       return true
