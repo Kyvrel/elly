@@ -13,6 +13,7 @@ import {
 } from '../db/schema'
 import { nanoid } from 'nanoid'
 import { desc } from 'drizzle-orm'
+import { UIMessage } from 'ai'
 
 export class WorkspaceService {
   // ===== Providers =====
@@ -88,6 +89,14 @@ export class WorkspaceService {
     const messsage = { ...msg, createdAt: now, updatedAt: now }
     db.insert(chatMessages).values(messsage).run()
     return messsage
+  }
+
+  updateMessage(id: string, message: UIMessage): ChatMessage | undefined {
+    db.update(chatMessages)
+      .set({ message, updatedAt: new Date() })
+      .where(eq(chatMessages.id, id))
+      .run()
+    return db.select().from(chatMessages).where(eq(chatMessages.id, id)).get()
   }
 
   // ===== Settings =====

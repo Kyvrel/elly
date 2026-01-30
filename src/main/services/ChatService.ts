@@ -107,10 +107,27 @@ export class ChatService {
       })
 
       const ws = this.wsClients.get(threadId)
-      let finalMessage: UIMessage | null = null
+      let isFirstMessage = true
+      const assistantMessageId = nanoid()
+      const dbMessageId = `${threadId}--${assistantMessageId}`
       for await (const message of readUIMessageStream({ stream: result.toUIMessageStream() })) {
         console.log('[ChatService] UIMessage:', message)
-        finalMessage = message
+        const uiMessage: UIMessage = {
+          id: assistantMessageId,
+          role: 'assistant',
+          parts: message.parts
+        }
+        if (isFirstMessage) {
+          workspaceService.insertMessage({
+            id: dbMessageId,
+            threadId,
+            parentId: null,
+            message: uiMessage
+          })
+          isFirstMessage = false
+        } else {
+          workspaceService.updateMessage(dbMessageId, uiMessage)
+        }
         for (const part of message.parts) {
           if (part.type == 'text') {
             ws?.send(JSON.stringify({ type: 'text', content: part.text }))
@@ -129,20 +146,6 @@ export class ChatService {
             )
           }
         }
-      }
-      if (finalMessage) {
-        const assistantMessageId = nanoid()
-        const uiMessage: UIMessage = {
-          id: assistantMessageId,
-          role: 'assistant',
-          parts: finalMessage.parts
-        }
-        workspaceService.insertMessage({
-          id: `${threadId}--${assistantMessageId}`,
-          threadId,
-          parentId: null,
-          message: uiMessage
-        })
       }
 
       workspaceService.updateThread(threadId, { isGenerating: false })
