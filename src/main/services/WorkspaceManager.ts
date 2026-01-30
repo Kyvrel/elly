@@ -1,6 +1,6 @@
 import path from 'path'
 import { db } from '../db'
-import { workspace, Workspace } from '../db/schema'
+import { workspaces, Workspace } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import fs from 'fs/promises'
 import { nanoid } from 'nanoid'
@@ -15,7 +15,7 @@ export class WorkspaceManager {
   ]
 
   getActiveWorkspace(): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
+    return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
   }
 
   resolvePath(relativePath: string): string {
@@ -39,6 +39,14 @@ export class WorkspaceManager {
 
   isSensitiveFile(filePath: string): boolean {
     return this.SENSITIVE_PATTERNS.some((pattern) => pattern.test(filePath))
+  }
+
+  isPathInWorkspace(filePath: string, workspaceId: string) {
+    const workspace = db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).get()
+    if (!workspace) return false
+    const resolvedPath = path.resolve(filePath)
+    const workspacePath = path.resolve(workspace.path)
+    return resolvedPath.startsWith(workspacePath)
   }
 
   async createWorkspace(name: string, dirPath: string) {

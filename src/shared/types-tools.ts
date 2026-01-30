@@ -3,6 +3,7 @@ import { z } from 'zod'
 export enum ToolCategory {
   READ = 'read',
   WRITE = 'write',
+  EDIT = 'edit',
   EXECUTE = 'execute',
   SEARCH = 'search',
   NETWORK = 'network'
