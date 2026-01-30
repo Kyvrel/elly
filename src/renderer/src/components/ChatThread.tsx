@@ -2,6 +2,13 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '.././lib/api'
 import { ChatThreadProps } from '@renderer/App'
 import ChatInput from './ChatInput'
+import type { UIMessagePart, UIDataTypes, UITools } from 'ai'
+import {
+  WS_CLIENT_MESSAGE_TYPES,
+  type WSServerMessage,
+  isMessageUpdate,
+  isDoneMessage
+} from '../../../shared/types-websocket'
 
 export interface ChatInputProps {
   onSend: () => void
@@ -9,12 +16,18 @@ export interface ChatInputProps {
   onType: (input: string) => void
 }
 
-export const formatMsg = (data) => {
-  return data.map((item) => ({
-    id: item.id,
-    role: item.message.role,
-    content: item.message.content
-  }))
+export const formatMessages = (messages) => {
+  return messages.map((item) => {
+    const content = item.message.parts
+      .filter((part) => part.type == 'text')
+      .map((part) => part.text)
+      .join('')
+    return {
+      id: item.message.id,
+      role: item.message.role,
+      content
+    }
+  })
 }
 
 export function ChatThread({ threadId }: ChatThreadProps) {
@@ -24,17 +37,18 @@ export function ChatThread({ threadId }: ChatThreadProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
 
-  const [messages, setMessages] = useState([
-    { id: 1, role: 'assistant', content: 'hello, how can i help you today' },
-    { id: 2, role: 'user', content: 'show me the design' }
-  ])
+  const [messages, setMessages] = useState<Array<{
+    id: string | number
+    role: string
+    content: string
+  }>>([])
 
   const isAssistant = (role: string) => role === 'assistant' || role === 'ai'
   useEffect(() => {
     if (!threadId) return
     const load = async () => {
       const data = await api.messages.getByThread(threadId)
-      const formattedMsgs = formatMsg(data)
+      const formattedMsgs = formatMessages(data)
       setMessages(formattedMsgs)
     }
     load()
@@ -58,7 +72,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
     })
 
     const data = await api.messages.getByThread(threadId)
-    setMessages(formatMsg(data))
+    setMessages(formatMessages(data))
   }
 
   useEffect(() => {
@@ -68,18 +82,24 @@ export function ChatThread({ threadId }: ChatThreadProps) {
 
     ws.onopen = () => {
       console.log('connected to ws')
-      ws.send(JSON.stringify({ type: 'register', threadId: threadId }))
+      ws.send(JSON.stringify({ type: WS_CLIENT_MESSAGE_TYPES.REGISTER, threadId: threadId }))
     }
 
     ws.onmessage = (event) => {
       console.log('ws onMessage data:', event.data)
-      const data = JSON.parse(event.data)
+      const data: WSServerMessage = JSON.parse(event.data)
 
-      if (data.type === 'text') {
-        setStreamingContent((prev) => prev + data.content)
-      } else if (data.type === 'done') {
+      if (isMessageUpdate(data)) {
+        // Extract text from parts array
+        const textContent = data.parts
+          .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text')
+          .map((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text' ? part.text : '')
+          .join('')
+
+        setStreamingContent(textContent)
+      } else if (isDoneMessage(data)) {
         setStreamingContent('')
-        api.messages.getByThread(threadId).then((d) => setMessages(formatMsg(d)))
+        api.messages.getByThread(threadId).then((d) => setMessages(formatMessages(d)))
       }
     }
     return () => ws.close()
