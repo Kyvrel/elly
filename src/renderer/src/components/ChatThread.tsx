@@ -31,10 +31,11 @@ export function ChatThread({ threadId }: ChatThreadProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
 
-  const [messages, setMessages] = useState([
-    { id: 1, role: 'assistant', content: 'hello, how can i help you today' },
-    { id: 2, role: 'user', content: 'show me the design' }
-  ])
+  const [messages, setMessages] = useState<Array<{
+    id: string | number
+    role: string
+    content: string
+  }>>([])
 
   const isAssistant = (role: string) => role === 'assistant' || role === 'ai'
   useEffect(() => {
