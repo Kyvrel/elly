@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { ChatService } from '../ChatService'
-import { workspaceService } from '../workspaceService'
+import { workspaceService } from '../WorkspaceService'
 import type { WebSocket } from 'ws'
 
 // Mock dependencies

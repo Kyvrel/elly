@@ -1,5 +1,7 @@
 import { BrowserWindow, clipboard, ipcMain, shell } from 'electron'
 import { IPC_CHANNELS } from '../../shared/ipc-channels'
+import { toolService, ToolService } from '../services/ToolService'
+import { permissionManager } from '../services/PermissionManager'
 
 export function setupIPCHandlers(mainWindow: BrowserWindow) {
   // window control
@@ -36,5 +38,20 @@ export function setupIPCHandlers(mainWindow: BrowserWindow) {
   ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_URL, (_, url: string) => {
     shell.openExternal(url)
     return { success: true }
+  })
+
+  // tool
+  ipcMain.handle('tool:call', async (_, name, args) => {
+    return toolService.callTool(name, args)
+  })
+
+  permissionManager.on('permission-required', (request) => {
+    BrowserWindow.getAllWindows().forEach((win) => {
+      win.webContents.send('tool:permission-required', request)
+    })
+  })
+
+  ipcMain.handle('tool:permission-decision', (_, { requestId, decision }) => {
+    permissionManager.handleDecision(requestId, decision)
   })
 }

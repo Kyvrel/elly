@@ -1,16 +1,18 @@
 import { eq } from 'drizzle-orm'
 import { db } from '../db'
 import {
-  AppSetting,
   appSettings,
   ChatMessage,
   chatMessages,
   ChatThread,
   chatThreads,
   Provider,
-  providers
+  providers,
+  workspace,
+  Workspace
 } from '../db/schema'
 import { nanoid } from 'nanoid'
+import { desc } from 'drizzle-orm'
 
 export class WorkspaceService {
   // ===== Providers =====
@@ -38,7 +40,7 @@ export class WorkspaceService {
 
   // ===== Threads =====
   getAllThreads() {
-    return db.select().from(chatThreads).all()
+    return db.select().from(chatThreads).orderBy(desc(chatThreads.createdAt)).all()
   }
 
   getThreadsById(id: string): ChatThread | undefined {
@@ -47,18 +49,19 @@ export class WorkspaceService {
 
   createThreads(title: string, model: string) {
     const now = new Date()
-    return db
-      .insert(chatThreads)
-      .values({
-        id: nanoid(),
-        title,
-        model,
-        isGenerating: false,
-        isFavorited: false,
-        createdAt: now,
-        updatedAt: now
-      })
-      .run()
+    const thread: ChatThread = {
+      id: nanoid(),
+      title,
+      model,
+      isGenerating: false,
+      isFavorited: false,
+      workspaceId: null,
+      createdAt: now,
+      updatedAt: now
+    }
+
+    db.insert(chatThreads).values(thread).run()
+    return thread
   }
 
   updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>) {
@@ -108,6 +111,20 @@ export class WorkspaceService {
         set: { settingsData: setting, updatedAt: now }
       })
       .run()
+  }
+
+  // ===== Workspaces =====
+
+  getAllWorkspaces() {
+    return db.select().from(workspace).all()
+  }
+
+  getWorkspaceById(id: string): Workspace | undefined {
+    return db.select().from(workspace).where(eq(workspace.id, id)).get()
+  }
+
+  getActiveWorkspace(): Workspace | undefined {
+    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
   }
 }
 

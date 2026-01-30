@@ -1,7 +1,8 @@
 import WebSocket from 'ws'
-import { workspaceService } from './workspaceService'
-import { streamText } from 'ai'
+import { workspaceService } from './WorkspaceService'
+import { streamText, stepCountIs } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
+import { toolRegister } from '../tools/registry'
 
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
@@ -40,16 +41,63 @@ export class ChatService {
         throw new Error(`Provider not found: ${providerId}`)
       }
       const aiModel = createAIProvider(provider, modelName)
+      const tools = toolRegister.getToolsForAI()
+      console.log('[ChatService] tools:', Object.keys(tools))
 
-      const { textStream } = await streamText({
+      const result = streamText({
         model: aiModel,
-        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content }))
+        messages: messages.map((msg) => ({ role: msg.message.role, content: msg.message.content })),
+        tools,
+        stopWhen: stepCountIs(10),
+        onFinish: async ({ steps }) => {
+          // Log all tool calls and results from all steps
+          console.log('[ChatService] onFinish steps:', steps)
+
+          const ws = this.wsClients.get(threadId)
+          for (const step of steps) {
+            if (step.toolCalls) {
+              for (const toolCall of step.toolCalls) {
+                // Skip dynamic tools
+                if (toolCall.dynamic) {
+                  continue
+                }
+
+                ws?.send(
+                  JSON.stringify({
+                    type: 'tool-call',
+                    toolName: toolCall.toolName,
+                    input: toolCall.input
+                  })
+                )
+              }
+            }
+            if (step.toolResults) {
+              for (const toolResult of step.toolResults) {
+                // Skip dynamic tools (tools without execute function)
+                if (toolResult.dynamic) {
+                  continue
+                }
+
+                ws?.send(
+                  JSON.stringify({
+                    type: 'tool-result',
+                    toolName: toolResult.toolName,
+                    input: toolResult.input,
+                    output: toolResult.output
+                  })
+                )
+              }
+            }
+          }
+        }
       })
+
       let fullText = ''
       const ws = this.wsClients.get(threadId)
 
-      for await (const chunk of textStream) {
+      for await (const chunk of result.textStream) {
         fullText += chunk
+        console.log('[ChatService] textStream:', fullText)
         ws?.send(JSON.stringify({ type: 'text', content: chunk }))
       }
 

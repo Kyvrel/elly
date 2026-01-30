@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
+    "devtools": "npx @ai-sdk/devtools",
     "start": "electron-vite preview",
     "dev": "electron-vite dev",
     "dev:api": "NODE_ENV=development tsx src/main/api/server.ts",
@@ -34,6 +35,7 @@
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.15",
+    "@ai-sdk/devtools": "^0.0.9",
     "@ai-sdk/google": "^3.0.13",
     "@ai-sdk/openai": "^3.0.12",
     "@ai-sdk/react": "^3.0.51",
@@ -44,7 +46,8 @@
     "@radix-ui/react-scroll-area": "^1.2.10",
     "@tailwindcss/cli": "^4.1.18",
     "@tailwindcss/vite": "^4.1.18",
-    "ai": "^6.0.39",
+    "@types/glob": "^9.0.0",
+    "ai": "^6.0.59",
     "autoprefixer": "^10.4.23",
     "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
@@ -52,6 +55,7 @@
     "drizzle-orm": "^0.45.1",
     "electron-updater": "^6.3.9",
     "express": "^5.2.1",
+    "glob": "^13.0.0",
     "lucide-react": "^0.562.0",
     "nanoid": "^5.1.6",
     "postcss": "^8.5.6",
@@ -59,7 +63,7 @@
     "swr": "^2.3.8",
     "tailwindcss": "^4.1.18",
     "ws": "^8.19.0",
-    "zod": "^4.3.5"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",

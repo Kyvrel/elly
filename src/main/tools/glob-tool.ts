@@ -1,0 +1,23 @@
+import { glob } from 'glob'
+import { workspaceManager } from '../services/WorkspaceManager'
+import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
+import { z } from 'zod'
+export async function Glob(pattern: string) {
+  const workspace = workspaceManager.getActiveWorkspace()
+  return await glob(pattern, { cwd: workspace?.path })
+}
+
+export const GlobTool: ToolDefinition = {
+  name: 'glob',
+  description: 'glob the files',
+  category: ToolCategory.SEARCH,
+  needPermission: true,
+  parameters: z.object({
+    pattern: z.string()
+  }),
+  execute: async ({ pattern }) => {
+    const workspace = workspaceManager.getActiveWorkspace()
+    const files = await glob(pattern, { cwd: workspace?.path })
+    return { success: true, data: files }
+  }
+}
