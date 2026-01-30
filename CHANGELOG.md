@@ -1,4 +1,21 @@
 ## v0.0.11 (2026-01-30)
+- What
+    - Move stored chat messages to UIMessage (AI SDK) format.
+    - Stream assistant output as UIMessage.parts and update the same DB row during streaming.
+    - Switch WebSocket streaming payload to message_update with full parts and add shared WS types.
+    - Standardize tool failures by throwing errors (instead of returning “success: false” shapes).
+    - Improve dev command: pnpm dev runs devtools + app; pnpm dev:app runs app only.
+- Why
+    - Keep one message format across DB, main process, WebSocket, and renderer.
+    - Make streaming UI and tool-call related parts easier to support.
+- How to test
+    - Run pnpm dev.
+    - Open a chat and send a message; confirm the assistant text streams live.
+    - Confirm UI updates come from WS message_update and final refresh happens on done.
+    - Try a tool action (glob/read/write/bash) and confirm errors show as errors when they fail.
+- Notes / Risk
+    - Old saved messages may not have message.parts. Existing local DB data may need a reset or migration.
+
 
 - [#14](https://github.com/Kyvrel/elly/pull/14) Adopt `UIMessage` from `ai` for chat messages, updating schema,
 
