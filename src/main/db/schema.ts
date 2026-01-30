@@ -29,7 +29,7 @@ export const chatThreads = sqliteTable('chat_threads', {
   model: text().notNull(), // 格式: "providerId/modelName"
   isGenerating: int('is_generating', { mode: 'boolean' }).default(false),
   isFavorited: int('is_favorited', { mode: 'boolean' }).default(false),
-  workspaceId: text('workspace_id').references(() => workspace.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   ...timestamps
 })
 
