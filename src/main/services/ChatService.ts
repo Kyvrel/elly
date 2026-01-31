@@ -20,7 +20,7 @@ import {
 } from '../../shared/types-websocket'
 
 import { nanoid } from 'nanoid'
-import { workspaceService } from './WorkspaceService'
+import { dbService } from './DBService'
 
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
@@ -44,9 +44,9 @@ export class ChatService {
     )
     try {
       this.saveUserMessage(threadId, message)
-      workspaceService.updateThread(threadId, { isGenerating: true })
+      dbService.updateThread(threadId, { isGenerating: true })
 
-      const messages = workspaceService.getMessagesByThreadId(threadId)
+      const messages = dbService.getMessagesByThreadId(threadId)
       console.log('[sendMessage] messages: ', messages)
       console.log('[sendMessage] model: ', model)
 
@@ -67,7 +67,7 @@ export class ChatService {
         readUIMessageStream({ stream: result.toUIMessageStream() })
       )
 
-      workspaceService.updateThread(threadId, { isGenerating: false })
+      dbService.updateThread(threadId, { isGenerating: false })
 
       const doneMessage: WSServerDoneMessage = {
         type: WS_SERVER_MESSAGE_TYPES.DONE
@@ -95,7 +95,7 @@ export class ChatService {
       ]
     }
 
-    workspaceService.insertMessage({
+    dbService.insertMessage({
       id: `${threadId}--${userMessageId}`,
       threadId,
       parentId: null,
@@ -110,7 +110,7 @@ export class ChatService {
     tools: Record<string, any>
   }> {
     const [providerId, modelName] = model.split('/')
-    const provider = workspaceService.getProviderById(providerId)
+    const provider = dbService.getProviderById(providerId)
 
     if (!provider) {
       throw new Error(`Provider not found: ${providerId}`)
@@ -158,7 +158,7 @@ export class ChatService {
       }
 
       if (isFirstMessage) {
-        workspaceService.insertMessage({
+        dbService.insertMessage({
           id: dbMessageId,
           threadId,
           parentId: null,
@@ -166,7 +166,7 @@ export class ChatService {
         })
         isFirstMessage = false
       } else {
-        workspaceService.updateMessage(dbMessageId, uiMessage)
+        dbService.updateMessage(dbMessageId, uiMessage)
       }
 
       // Send complete parts array via WebSocket
@@ -176,7 +176,7 @@ export class ChatService {
 
   private handleError(threadId: string, error: Error): void {
     console.error(`failed to sendMessage`, error)
-    workspaceService.updateThread(threadId, { isGenerating: false })
+    dbService.updateThread(threadId, { isGenerating: false })
 
     const ws = this.wsClients.get(threadId)
     const errorMessage: WSServerErrorMessage = {

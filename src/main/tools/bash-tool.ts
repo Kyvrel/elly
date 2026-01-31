@@ -1,6 +1,6 @@
 import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
-import { workspaceManager } from '../services/WorkspaceManager'
+import { dbService } from '../services/DBService'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
@@ -36,7 +36,7 @@ export const BashTool: ToolDefinition = {
       throw new Error('Dangerous command blocked')
     }
 
-    const workspace = workspaceManager.getActiveWorkspace()
+    const workspace = dbService.getActiveWorkspace()
     const cwd = workspace?.path || process.cwd()
 
     try {
