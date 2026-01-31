@@ -1,3 +1,10 @@
+## v0.0.13 (2026-01-31)
+
+## Summary
+This PR refactors the database interaction layer by renaming `WorkspaceService` to `DBService` and centralizing all database-related operations within it. This improves the separation of concerns and simplifies the API and service layers.
+
+- [#16](https://github.com/Kyvrel/elly/pull/16) refactor: rename WorkspaceService to DBService and centralize database operations
+
 ## v0.0.12 (2026-01-31)
 
 ## Summary
