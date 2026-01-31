@@ -19,7 +19,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: '20'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -52,7 +52,7 @@ jobs:
         run: pnpm run build:mac
         env:
           # CI builds should not depend on locally-installed signing identities.
-          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
       - name: Upload macOS ARM64 artifacts
         uses: actions/upload-artifact@v4

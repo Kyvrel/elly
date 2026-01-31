@@ -29,7 +29,7 @@ export const chatThreads = sqliteTable('chat_threads', {
   model: text().notNull(), // 格式: "providerId/modelName"
   isGenerating: int('is_generating', { mode: 'boolean' }).default(false),
   isFavorited: int('is_favorited', { mode: 'boolean' }).default(false),
-  workspaceId: text('workspace_id').references(() => workspace.id),
+  workspaceId: text('workspace_id').references(() => workspaces.id),
   ...timestamps
 })
 
@@ -49,7 +49,7 @@ export const appSettings = sqliteTable('app_settings', {
   ...timestamps
 })
 
-export const workspace = sqliteTable('workspace', {
+export const workspaces = sqliteTable('workspace', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
   path: text('path').notNull(), // absolute path
@@ -61,4 +61,4 @@ export type Provider = typeof providers.$inferSelect
 export type ChatThread = typeof chatThreads.$inferSelect
 export type ChatMessage = typeof chatMessages.$inferSelect
 export type AppSetting = typeof appSettings.$inferSelect
-export type Workspace = typeof workspace.$inferInsert
+export type Workspace = typeof workspaces.$inferInsert

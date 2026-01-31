@@ -8,7 +8,7 @@ import {
   chatThreads,
   Provider,
   providers,
-  workspace,
+  workspaces,
   Workspace
 } from '../db/schema'
 import { nanoid } from 'nanoid'
@@ -18,7 +18,7 @@ import { UIMessage } from 'ai'
 export class WorkspaceService {
   // ===== Providers =====
 
-  getProviders() {
+  getProviders(): Provider[] {
     const res = db.select().from(providers).all()
     return res
   }
@@ -27,7 +27,7 @@ export class WorkspaceService {
     return db.select().from(providers).where(eq(providers.id, id)).get()
   }
 
-  upsertProviders(provider: Omit<Provider, 'createdAt' | 'updatedAt'>) {
+  upsertProviders(provider: Omit<Provider, 'createdAt' | 'updatedAt'>): void {
     const now = new Date()
     db.insert(providers)
       .values({ ...provider, createdAt: now, updatedAt: now })
@@ -35,12 +35,12 @@ export class WorkspaceService {
       .run()
   }
 
-  deleteProvider(id: string) {
+  deleteProvider(id: string): void {
     db.delete(providers).where(eq(providers.id, id)).run()
   }
 
   // ===== Threads =====
-  getAllThreads() {
+  getAllThreads(): ChatThread[] {
     return db.select().from(chatThreads).orderBy(desc(chatThreads.createdAt)).all()
   }
 
@@ -48,7 +48,7 @@ export class WorkspaceService {
     return db.select().from(chatThreads).where(eq(chatThreads.id, id)).get()
   }
 
-  createThreads(title: string, model: string) {
+  createThreads(title: string, model: string): ChatThread {
     const now = new Date()
     const thread: ChatThread = {
       id: nanoid(),
@@ -65,7 +65,7 @@ export class WorkspaceService {
     return thread
   }
 
-  updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>) {
+  updateThread(id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>): any {
     const now = new Date()
     return db
       .update(chatThreads)
@@ -73,13 +73,14 @@ export class WorkspaceService {
       .where(eq(chatThreads.id, id))
       .run()
   }
-  deleteThread(id: string) {
+
+  deleteThread(id: string): void {
     db.delete(chatThreads).where(eq(chatThreads.id, id)).run()
   }
 
   // ===== Messages =====
 
-  getMessagesByThreadId(threadId: string) {
+  getMessagesByThreadId(threadId: string): ChatMessage[] {
     console.log('[getMessagesByThreadId] threadId:', threadId)
     return db.select().from(chatMessages).where(eq(chatMessages.threadId, threadId)).all()
   }
@@ -101,12 +102,12 @@ export class WorkspaceService {
 
   // ===== Settings =====
 
-  getSettings() {
+  getSettings(): any {
     const result = db.select().from(appSettings).where(eq(appSettings.id, 'default')).get()
     return result?.settingsData || {}
   }
 
-  updateSettings(setting: Record<string, any>) {
+  updateSettings(setting: Record<string, any>): void {
     const now = new Date()
     db.insert(appSettings)
       .values({
@@ -124,16 +125,16 @@ export class WorkspaceService {
 
   // ===== Workspaces =====
 
-  getAllWorkspaces() {
-    return db.select().from(workspace).all()
+  getAllWorkspaces(): Workspace[] {
+    return db.select().from(workspaces).all()
   }
 
   getWorkspaceById(id: string): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.id, id)).get()
+    return db.select().from(workspaces).where(eq(workspaces.id, id)).get()
   }
 
   getActiveWorkspace(): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
+    return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
   }
 }
 

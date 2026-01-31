@@ -1,6 +1,11 @@
 import { SidebarProps } from '@renderer/App'
 
-export default function Sidebar({ threads, activeId, onSelect, onNewChat }: SidebarProps) {
+export default function Sidebar({
+  threads,
+  activeId,
+  onSelect,
+  onNewChat
+}: SidebarProps): React.JSX.Element {
   return (
     <div className="flex flex-col gap-4 w-64 bg-gray-50 p-4">
       <button

@@ -1,7 +1,7 @@
 import { WebSocketServer } from 'ws'
 import { chatService } from './ChatService'
 
-export function createWebSocketServer(port = 8765) {
+export function createWebSocketServer(port = 8765): WebSocketServer {
   const wss = new WebSocketServer({ port })
 
   wss.on('connection', (ws) => {

@@ -1,6 +1,7 @@
 import path from 'path'
+import os from 'os'
 import { db } from '../db'
-import { workspace, Workspace } from '../db/schema'
+import { workspaces, Workspace } from '../db/schema'
 import { eq } from 'drizzle-orm'
 import fs from 'fs/promises'
 import { nanoid } from 'nanoid'
@@ -15,7 +16,7 @@ export class WorkspaceManager {
   ]
 
   getActiveWorkspace(): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
+    return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
   }
 
   resolvePath(relativePath: string): string {
@@ -41,7 +42,15 @@ export class WorkspaceManager {
     return this.SENSITIVE_PATTERNS.some((pattern) => pattern.test(filePath))
   }
 
-  async createWorkspace(name: string, dirPath: string) {
+  isPathInWorkspace(filePath: string, workspaceId: string): boolean {
+    const workspace = db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).get()
+    if (!workspace) return false
+    const resolvedPath = path.resolve(filePath)
+    const workspacePath = path.resolve(workspace.path)
+    return resolvedPath.startsWith(workspacePath)
+  }
+
+  async createWorkspace(name: string, dirPath: string): Promise<Workspace> {
     const stats = await fs.stat(dirPath)
     if (!stats.isDirectory()) {
       throw new Error('path is not a directory')
@@ -54,22 +63,30 @@ export class WorkspaceManager {
       isActive: false
     }
 
-    db.insert(workspace).values(newWorkspace).run()
+    db.insert(workspaces).values(newWorkspace).run()
     return newWorkspace
   }
 
-  setActiveWorkspace(workspaceId: string) {
-    db.update(workspace).set({ isActive: false }).run()
-    db.update(workspace).set({ isActive: true }).where(eq(workspace.id, workspaceId)).run()
+  setActiveWorkspace(workspaceId: string): void {
+    db.update(workspaces).set({ isActive: false }).run()
+    db.update(workspaces).set({ isActive: true }).where(eq(workspaces.id, workspaceId)).run()
   }
 
-  async ensureActiveWorkspace() {
+  async ensureActiveWorkspace(): Promise<void> {
     const activeWorkspace = this.getActiveWorkspace()
     if (!activeWorkspace) {
-      const cwd = process.cwd()
-      const defaultWorkspace = await this.createWorkspace('Default', cwd)
+      const defaultPath = path.join(
+        os.homedir(),
+        'Library',
+        'Application Support',
+        'alma',
+        'workspaces',
+        'default'
+      )
+      await fs.mkdir(defaultPath, { recursive: true })
+      const defaultWorkspace = await this.createWorkspace('Default', defaultPath)
       this.setActiveWorkspace(defaultWorkspace.id)
-      console.log(`Created default workspace at: ${cwd}`)
+      console.log(`Created default workspace at: ${defaultPath}`)
     }
   }
 }

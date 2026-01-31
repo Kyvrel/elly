@@ -6,12 +6,13 @@ import { dirname } from 'node:path'
 
 export const WriteFileTool: ToolDefinition = {
   name: 'write_file',
-  description: 'Write content to a file. Overwrites if exists.',
+  description:
+    'Writes content to a file. Overwrites the file if it already exists, and creates parent directories if necessary.',
   category: ToolCategory.WRITE,
-  needPermission: true, // Must be TRUE for write
+  needsApproval: true, // Must be TRUE for write
   parameters: z.object({
-    file_path: z.string(),
-    content: z.string()
+    file_path: z.string().describe('Path where the file should be written.'),
+    content: z.string().describe('The content to write to the file.')
   }),
   execute: async ({ file_path, content }) => {
     try {

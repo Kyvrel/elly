@@ -8,7 +8,8 @@ type SeedArgs = {
 }
 
 function printHelp() {
-  console.log(`
+  console.log(
+    `
 Seed test data into the local SQLite database.
 
 Usage:
@@ -18,7 +19,8 @@ Options:
   --db <path>   Database file path (default: ./elly.db)
   --reset       Delete old seeded rows (ids start with "seed_")
   --help        Show help
-`.trim())
+`.trim()
+  )
 }
 
 function parseArgs(argv: string[]): SeedArgs {
@@ -55,7 +57,9 @@ function parseArgs(argv: string[]): SeedArgs {
 }
 
 function requireTables(db: DatabaseSync) {
-  const stmt = db.prepare(`select name from sqlite_master where type = 'table' and name not like 'sqlite_%'`)
+  const stmt = db.prepare(
+    `select name from sqlite_master where type = 'table' and name not like 'sqlite_%'`
+  )
   const rows = stmt.all() as Array<{ name: string }>
   const names = new Set(rows.map((r) => r.name))
 
@@ -88,14 +92,18 @@ function checkDatabaseHealth(db: DatabaseSync) {
       console.error('Database quick_check failed.')
       console.error('First error:', first)
       console.error('Tip: close the running Electron app, then rebuild the db.')
-      console.error('Rebuild steps: rm -f elly.db elly.db-wal elly.db-shm && pnpm db:migrate && pnpm db:seed')
+      console.error(
+        'Rebuild steps: rm -f elly.db elly.db-wal elly.db-shm && pnpm db:migrate && pnpm db:seed'
+      )
       process.exit(1)
     }
   } catch (e: any) {
     console.error('Cannot read the database (quick_check failed).')
     console.error('This often means the db is corrupted or another process is using it.')
     console.error('Tip: close the running Electron app, then rebuild the db.')
-    console.error('Rebuild steps: rm -f elly.db elly.db-wal elly.db-shm && pnpm db:migrate && pnpm db:seed')
+    console.error(
+      'Rebuild steps: rm -f elly.db elly.db-wal elly.db-shm && pnpm db:migrate && pnpm db:seed'
+    )
     if (e?.message) console.error('Error:', e.message)
     process.exit(1)
   }
@@ -169,7 +177,14 @@ try {
       enabled = excluded.enabled,
       updatedAt = CURRENT_TIMESTAMP
   `.trim()
-  ).run('seed_anthropic', 'Anthropic (test)', 'anthropic', 'test-anthropic-key', 'https://api.anthropic.com', 1)
+  ).run(
+    'seed_anthropic',
+    'Anthropic (test)',
+    'anthropic',
+    'test-anthropic-key',
+    'https://api.anthropic.com',
+    1
+  )
 
   db.prepare(
     `
@@ -231,7 +246,10 @@ try {
     'seed_msg_4',
     'seed_thread_2',
     'seed_msg_3',
-    JSON.stringify({ role: 'assistant', content: 'A small cat walked under the moon and found a warm home.' })
+    JSON.stringify({
+      role: 'assistant',
+      content: 'A small cat walked under the moon and found a warm home.'
+    })
   )
 
   db.exec('COMMIT;')

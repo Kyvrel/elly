@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import { workspaceService } from './WorkspaceService'
 import {
   streamText,
   stepCountIs,
@@ -12,6 +11,7 @@ import {
 } from 'ai'
 import { createAIProvider } from './AIProviderFactory'
 import { toolRegister } from '../tools/registry'
+import type { LanguageModelV3 } from '@ai-sdk/provider'
 import {
   WS_SERVER_MESSAGE_TYPES,
   type WSServerMessageUpdate,
@@ -20,25 +20,30 @@ import {
 } from '../../shared/types-websocket'
 
 import { nanoid } from 'nanoid'
+import { workspaceService } from './WorkspaceService'
+
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
-  registerWSClient(threadId: string, ws: WebSocket) {
+  registerWSClient(threadId: string, ws: WebSocket): void {
     this.wsClients.set(threadId, ws)
     console.log(`WebSocket registered for thread: ${threadId}`)
   }
 
-  unregisterWSClient(threadId: string) {
+  unregisterWSClient(threadId: string): void {
     this.wsClients.delete(threadId)
     console.log(`WebSocket unregistered for thread: ${threadId}`)
   }
 
-  async sendMessage(threadId: string, message: string, model: string) {
+  async sendMessage(
+    threadId: string,
+    message: string,
+    model: string
+  ): Promise<{ success: boolean }> {
     console.log(
       `ChatService.sendMessage called for threadId: ${threadId}, message: "${message}", model: "${model}"`
     )
     try {
       this.saveUserMessage(threadId, message)
-
       workspaceService.updateThread(threadId, { isGenerating: true })
 
       const messages = workspaceService.getMessagesByThreadId(threadId)
@@ -52,7 +57,7 @@ export class ChatService {
         messages: await convertToModelMessages(messages.map((msg) => msg.message)),
         tools,
         stopWhen: stepCountIs(10),
-        onError({ error }) {
+        onError({ error }): void {
           console.error('An error occurred streamText:', error) // Your error logging logic here
         }
       })
@@ -100,7 +105,10 @@ export class ChatService {
     return userMessageId
   }
 
-  private async prepareAIModel(model: string) {
+  private async prepareAIModel(model: string): Promise<{
+    aiModel: LanguageModelV3
+    tools: Record<string, any>
+  }> {
     const [providerId, modelName] = model.split('/')
     const provider = workspaceService.getProviderById(providerId)
 
@@ -119,7 +127,7 @@ export class ChatService {
     threadId: string,
     messageId: string,
     parts: Array<UIMessagePart<UIDataTypes, UITools>>
-  ) {
+  ): void {
     const ws = this.wsClients.get(threadId)
 
     const message: WSServerMessageUpdate = {
@@ -133,7 +141,10 @@ export class ChatService {
     ws?.send(JSON.stringify(message))
   }
 
-  private async handleMessageStream(threadId: string, stream: AsyncIterable<UIMessage>) {
+  private async handleMessageStream(
+    threadId: string,
+    stream: AsyncIterable<UIMessage>
+  ): Promise<void> {
     const assistantMessageId = nanoid()
     const dbMessageId = `${threadId}--${assistantMessageId}`
     let isFirstMessage = true
@@ -163,7 +174,7 @@ export class ChatService {
     }
   }
 
-  private handleError(threadId: string, error: Error) {
+  private handleError(threadId: string, error: Error): void {
     console.error(`failed to sendMessage`, error)
     workspaceService.updateThread(threadId, { isGenerating: false })
 

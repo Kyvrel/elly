@@ -5,25 +5,30 @@ import { IPC_CHANNELS } from '../shared/ipc-channels'
 // Custom APIs for renderer
 const api = {
   // window
-  windowMinimize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
-  windowMaximize: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
-  windowClose: () => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
+  windowMinimize: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MINIMIZE),
+  windowMaximize: (): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.WINDOW_MAXIMIZE),
+  windowClose: (): Promise<{ success: boolean }> => ipcRenderer.invoke(IPC_CHANNELS.WINDOW_CLOSE),
 
   // clipboard
-  clipboardWriteText: (text: string) =>
+  clipboardWriteText: (text: string): Promise<{ success: boolean }> =>
     ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_WRITE_TEXT, text),
-  clipboardReadText: () => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_READ_TEXT),
+  clipboardReadText: (): Promise<string> => ipcRenderer.invoke(IPC_CHANNELS.CLIPBOARD_READ_TEXT),
 
   // external url
-  openExternalUrl: (url: string) => ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url),
+  openExternalUrl: (url: string): Promise<{ success: boolean }> =>
+    ipcRenderer.invoke(IPC_CHANNELS.OPEN_EXTERNAL_URL, url),
 
   // tool permissions
-  onPermissionRequired: (callback: (request: any) => void) => {
-    const listener = (_: any, request: any) => callback(request)
+  onPermissionRequired: (callback: (request: any) => void): (() => void) => {
+    const listener = (_event: any, request: any): void => callback(request)
     ipcRenderer.on('tool:permission-required', listener)
-    return () => ipcRenderer.removeListener('tool:permission-required', listener)
+    return (): void => {
+      ipcRenderer.removeListener('tool:permission-required', listener)
+    }
   },
-  sendPermissionDecision: (requestId: string, decision: string) =>
+  sendPermissionDecision: (requestId: string, decision: string): Promise<void> =>
     ipcRenderer.invoke('tool:permission-decision', { requestId, decision })
 }
 

@@ -2,7 +2,7 @@ import { toolRegister } from '../tools/registry'
 import { permissionManager } from './PermissionManager'
 
 export class ToolService {
-  async callTool(name: string, args: any) {
+  async callTool(name: string, args: any): Promise<any> {
     const tool = toolRegister.getTool(name)
     if (!tool) throw new Error(`Tool ${name} not found`)
 
