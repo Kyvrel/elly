@@ -23,7 +23,8 @@ const DANGEROUS_PATTERNS = [
 
 export const BashTool: ToolDefinition = {
   name: 'bash',
-  description: 'Executes a shell command in the active workspace and returns the output (stdout and stderr).',
+  description:
+    'Executes a shell command in the active workspace and returns the output (stdout and stderr).',
   category: ToolCategory.EXECUTE,
   needsApproval: true,
   parameters: BashSchema,

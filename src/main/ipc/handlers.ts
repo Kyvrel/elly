@@ -38,13 +38,10 @@ export function setupIPCHandlers(mainWindow: BrowserWindow): void {
   )
 
   // external url
-  ipcMain.handle(
-    IPC_CHANNELS.OPEN_EXTERNAL_URL,
-    (_event, url: string): { success: boolean } => {
-      shell.openExternal(url)
-      return { success: true }
-    }
-  )
+  ipcMain.handle(IPC_CHANNELS.OPEN_EXTERNAL_URL, (_event, url: string): { success: boolean } => {
+    shell.openExternal(url)
+    return { success: true }
+  })
 
   // tool
   ipcMain.handle('tool:call', async (_event, name, args): Promise<any> => {

@@ -8,14 +8,22 @@ const execAsync = promisify(exec)
 
 const GrepSchema = z.object({
   pattern: z.string().describe('The regex pattern to search for in file contents.'),
-  path: z.string().optional().describe('The directory path to search in (defaults to workspace root).'),
+  path: z
+    .string()
+    .optional()
+    .describe('The directory path to search in (defaults to workspace root).'),
   glob: z.string().optional().describe('File glob pattern to restrict the search (e.g., "*.ts").'),
-  case_sensitive: z.boolean().optional().default(true).describe('Whether the search should be case-sensitive.')
+  case_sensitive: z
+    .boolean()
+    .optional()
+    .default(true)
+    .describe('Whether the search should be case-sensitive.')
 })
 
 export const GrepTool: ToolDefinition = {
   name: 'grep',
-  description: 'Searches for text patterns in files using ripgrep (rg) or grep. Returns matching lines with line numbers.',
+  description:
+    'Searches for text patterns in files using ripgrep (rg) or grep. Returns matching lines with line numbers.',
   category: ToolCategory.SEARCH,
   needsApproval: false,
   parameters: GrepSchema,

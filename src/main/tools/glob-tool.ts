@@ -9,7 +9,8 @@ export async function Glob(pattern: string): Promise<string[]> {
 
 export const GlobTool: ToolDefinition = {
   name: 'glob',
-  description: 'Finds files matching a glob pattern (e.g., "**/*.ts") within the current workspace.',
+  description:
+    'Finds files matching a glob pattern (e.g., "**/*.ts") within the current workspace.',
   category: ToolCategory.SEARCH,
   needsApproval: true,
   parameters: z.object({
