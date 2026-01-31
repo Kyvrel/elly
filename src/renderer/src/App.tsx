@@ -19,8 +19,8 @@ function App(): React.JSX.Element {
   const [threads, setThreads] = useState<any[]>([])
   const [activeThreadId, setActiveThreadId] = useState('')
 
-  useEffect(() => {
-    const load = async () => {
+  useEffect((): void => {
+    const load = async (): Promise<void> => {
       const data = await api.threads.getAll()
       console.log('threads: ', data)
       setThreads(data)
@@ -28,9 +28,12 @@ function App(): React.JSX.Element {
     load()
   }, [])
 
-  const handleNewChat = async () => {
+  const handleNewChat = async (): Promise<void> => {
     console.log('[handleNewChat]')
-    const thread: any = await api.threads.create({ title: 'new', model: 'google/gemini-2.5-flash' })
+    const thread: any = await api.threads.create({
+      title: 'new',
+      model: 'google/gemini-2.5-flash'
+    })
     console.log('[handleNewChat] thread: ', thread)
     setActiveThreadId(thread.id)
     setThreads((prev) => [thread, ...prev])

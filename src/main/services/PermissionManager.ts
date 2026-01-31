@@ -19,7 +19,7 @@ export class PermissionManager extends EventEmitter {
   private pendingRequests = new Map<string, PermissionRequest>()
   private autoApprovals = new Set<string>()
 
-  requestPermission(tool: ToolDefinition, params: any) {
+  requestPermission(tool: ToolDefinition, params: any): Promise<boolean> | boolean {
     if (!tool.needsApproval) return true
 
     if (this.autoApprovals.has(tool.name)) {
@@ -58,11 +58,11 @@ export class PermissionManager extends EventEmitter {
   }
 
   // called by ui when the user clicks a button
-  handleDecision(requestId: string, decision: ApprovalDecision) {
+  handleDecision(requestId: string, decision: ApprovalDecision): void {
     this.emit(`decision-${requestId}`, decision)
   }
 
-  resetAutoApprovals() {
+  resetAutoApprovals(): void {
     this.autoApprovals.clear()
   }
 }

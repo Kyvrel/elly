@@ -2,7 +2,7 @@ import { glob } from 'glob'
 import { workspaceManager } from '../services/WorkspaceManager'
 import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
-export async function Glob(pattern: string) {
+export async function Glob(pattern: string): Promise<string[]> {
   const workspace = workspaceManager.getActiveWorkspace()
   return await glob(pattern, { cwd: workspace?.path })
 }

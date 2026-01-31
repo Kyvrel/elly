@@ -42,7 +42,7 @@ export class WorkspaceManager {
     return this.SENSITIVE_PATTERNS.some((pattern) => pattern.test(filePath))
   }
 
-  isPathInWorkspace(filePath: string, workspaceId: string) {
+  isPathInWorkspace(filePath: string, workspaceId: string): boolean {
     const workspace = db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).get()
     if (!workspace) return false
     const resolvedPath = path.resolve(filePath)
@@ -50,7 +50,7 @@ export class WorkspaceManager {
     return resolvedPath.startsWith(workspacePath)
   }
 
-  async createWorkspace(name: string, dirPath: string) {
+  async createWorkspace(name: string, dirPath: string): Promise<Workspace> {
     const stats = await fs.stat(dirPath)
     if (!stats.isDirectory()) {
       throw new Error('path is not a directory')
@@ -67,15 +67,22 @@ export class WorkspaceManager {
     return newWorkspace
   }
 
-  setActiveWorkspace(workspaceId: string) {
+  setActiveWorkspace(workspaceId: string): void {
     db.update(workspaces).set({ isActive: false }).run()
     db.update(workspaces).set({ isActive: true }).where(eq(workspaces.id, workspaceId)).run()
   }
 
-  async ensureActiveWorkspace() {
+  async ensureActiveWorkspace(): Promise<void> {
     const activeWorkspace = this.getActiveWorkspace()
     if (!activeWorkspace) {
-      const defaultPath = path.join(os.homedir(), 'Library', 'Application Support', 'alma', 'workspaces', 'default')
+      const defaultPath = path.join(
+        os.homedir(),
+        'Library',
+        'Application Support',
+        'alma',
+        'workspaces',
+        'default'
+      )
       await fs.mkdir(defaultPath, { recursive: true })
       const defaultWorkspace = await this.createWorkspace('Default', defaultPath)
       this.setActiveWorkspace(defaultWorkspace.id)

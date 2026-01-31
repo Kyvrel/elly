@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react'
 
-export function PermissionDialog() {
+export function PermissionDialog(): React.JSX.Element | null {
   const [request, setRequest] = useState<any>(null)
-  useEffect(() => {
+  useEffect((): (() => void) => {
     const removeListener = window.api.onPermissionRequired((req) => {
       setRequest(req)
     })
-    return () => removeListener()
+    return (): void => removeListener()
   }, [])
-  const respond = (decision: string) => {
+  const respond = (decision: string): void => {
     window.api.sendPermissionDecision(request.id, decision)
     setRequest(null)
   }

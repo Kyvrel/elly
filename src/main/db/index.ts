@@ -12,6 +12,7 @@ function getDbPath(): string {
   }
   // Try to use Electron app if available
   try {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { app } = require('electron')
     return path.join(app.getPath('userData'), 'elly.db')
   } catch {
@@ -32,7 +33,7 @@ const sqlite = new Database(dbPath)
 sqlite.pragma('journal_mode = WAL')
 export const db = drizzle(sqlite, { schema })
 
-export function initDatabase() {
+export function initDatabase(): void {
   // Note: Database migrations should be run manually with:
   // pnpm db:generate && pnpm db:migrate
   // Don't run them from within Electron as it uses a different Node.js version

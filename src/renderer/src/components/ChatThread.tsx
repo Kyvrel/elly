@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { api } from '.././lib/api'
 import { ChatThreadProps } from '@renderer/App'
 import ChatInput from './ChatInput'
+import { formatMessages } from './formatMessages'
 import type { UIMessagePart, UIDataTypes, UITools } from 'ai'
 import {
   WS_CLIENT_MESSAGE_TYPES,
@@ -16,37 +17,25 @@ export interface ChatInputProps {
   onType: (input: string) => void
 }
 
-export const formatMessages = (messages) => {
-  return messages.map((item) => {
-    const content = item.message.parts
-      .filter((part) => part.type == 'text')
-      .map((part) => part.text)
-      .join('')
-    return {
-      id: item.message.id,
-      role: item.message.role,
-      content
-    }
-  })
-}
-
-export function ChatThread({ threadId }: ChatThreadProps) {
+export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
   const [streamingContent, setStreamingContent] = useState('')
   const [input, setInput] = useState('')
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
 
-  const [messages, setMessages] = useState<Array<{
-    id: string | number
-    role: string
-    content: string
-  }>>([])
+  const [messages, setMessages] = useState<
+    Array<{
+      id: string | number
+      role: string
+      content: string
+    }>
+  >([])
 
-  const isAssistant = (role: string) => role === 'assistant' || role === 'ai'
-  useEffect(() => {
+  const isAssistant = (role: string): boolean => role === 'assistant' || role === 'ai'
+  useEffect((): void => {
     if (!threadId) return
-    const load = async () => {
+    const load = async (): Promise<void> => {
       const data = await api.messages.getByThread(threadId)
       const formattedMsgs = formatMessages(data)
       setMessages(formattedMsgs)
@@ -54,7 +43,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
     load()
   }, [threadId])
 
-  const handleClick = async () => {
+  const handleClick = async (): Promise<void> => {
     if (!input.trim()) return
     if (!threadId) {
       alert('please select a chat')
@@ -75,17 +64,17 @@ export function ChatThread({ threadId }: ChatThreadProps) {
     setMessages(formatMessages(data))
   }
 
-  useEffect(() => {
+  useEffect((): (() => void) | void => {
     if (!threadId) return
 
     const ws = new WebSocket('ws://localhost:8765')
 
-    ws.onopen = () => {
+    ws.onopen = (): void => {
       console.log('connected to ws')
       ws.send(JSON.stringify({ type: WS_CLIENT_MESSAGE_TYPES.REGISTER, threadId: threadId }))
     }
 
-    ws.onmessage = (event) => {
+    ws.onmessage = (event): void => {
       console.log('ws onMessage data:', event.data)
       const data: WSServerMessage = JSON.parse(event.data)
 
@@ -93,7 +82,9 @@ export function ChatThread({ threadId }: ChatThreadProps) {
         // Extract text from parts array
         const textContent = data.parts
           .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text')
-          .map((part: UIMessagePart<UIDataTypes, UITools>) => part.type === 'text' ? part.text : '')
+          .map((part: UIMessagePart<UIDataTypes, UITools>) =>
+            part.type === 'text' ? part.text : ''
+          )
           .join('')
 
         setStreamingContent(textContent)
@@ -102,16 +93,16 @@ export function ChatThread({ threadId }: ChatThreadProps) {
         api.messages.getByThread(threadId).then((d) => setMessages(formatMessages(d)))
       }
     }
-    return () => ws.close()
+    return (): void => ws.close()
   }, [threadId])
 
-  useEffect(() => {
+  useEffect((): void => {
     if (isAtBottom && messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [messages.length, streamingContent, isAtBottom])
 
-  const handleScroll = () => {
+  const handleScroll = (): void => {
     if (!scrollContainerRef.current) return
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
     const isBottom = scrollHeight - scrollTop - clientHeight < 50
@@ -125,7 +116,7 @@ export function ChatThread({ threadId }: ChatThreadProps) {
         onScroll={handleScroll}
         className="flex-1 p-4 overflow-y-auto space-y-4"
       >
-        {messages.map((message, _) => (
+        {messages.map((message) => (
           <div
             key={`${message.id}`}
             className={`flex ${isAssistant(message.role) ? 'justify-start' : 'justify-end'} `}

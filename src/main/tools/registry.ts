@@ -19,21 +19,21 @@ export class ToolRegistry {
     this.register(GrepTool)
   }
 
-  register(tool: ToolDefinition) {
+  register(tool: ToolDefinition): void {
     this.tools.set(tool.name, tool)
   }
 
-  getTool(name: string) {
+  getTool(name: string): ToolDefinition | undefined {
     return this.tools.get(name)
   }
 
-  getToolsForAI() {
+  getToolsForAI(): Record<string, any> {
     const aiTools: Record<string, any> = {}
     for (const [name, toolDef] of this.tools.entries()) {
       aiTools[name] = tool({
         description: toolDef.description,
         inputSchema: toolDef.parameters,
-        execute: async (params, _) => {
+        execute: async (params) => {
           // Request permission before executing
           if (toolDef.needsApproval) {
             const approved = await permissionManager.requestPermission(toolDef, params)

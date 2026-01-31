@@ -1,6 +1,6 @@
 import { ChatInputProps } from './ChatThread'
 
-export default function ChatInput({ onSend, input, onType }: ChatInputProps) {
+export default function ChatInput({ onSend, input, onType }: ChatInputProps): React.JSX.Element {
   return (
     <div className="h-16 p-4 flex justify-between gap-2 border-t border-t-gray-100">
       <input
