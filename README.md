@@ -1,34 +1,65 @@
 # elly
 
-An Electron application with React and TypeScript
+**elly** is an Electron-based desktop application that provides a powerful AI agent interface. It allows users to interact with various AI models (Claude, GPT, Gemini) to perform complex tasks, including file operations, shell command execution, and code editing within a local workspace.
 
-## Recommended IDE Setup
+## Features
 
-- [VSCode](https://code.visualstudio.com/) + [ESLint](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) + [Prettier](https://marketplace.visualstudio.com/items?itemName=esbenp.prettier-vscode)
+- **Multi-Model Support**: Integrates with major AI providers via the Vercel AI SDK.
+- **Tool-Augmented Chat**: Equipped with local tools for Bash execution, file I/O, and codebase searching.
+- **Workspace Management**: Organize work into specific directories, with AI operations scoped to the active workspace.
+- **Local Persistence**: Stores chat history and configurations locally using SQLite.
+- **Human-in-the-loop**: Requires user approval for sensitive actions like executing commands or modifying files.
 
-## Project Setup
+## Project Structure
 
-### Install
+- `src/main`: Electron main process, services, and AI tools.
+- `src/renderer`: React-based frontend UI.
+- `src/shared`: Shared types and constants.
+- `drizzle`: Database migrations and schemas.
 
-```bash
-$ pnpm install
-```
+## Getting Started
+
+### Prerequisites
+
+- Node.js (LTS recommended)
+- [pnpm](https://pnpm.io/)
+
+### Installation
+
+1. Install dependencies:
+   ```bash
+   pnpm install
+   ```
+
+2. Initialize the local database:
+   ```bash
+   pnpm run db:generate
+   pnpm run db:migrate
+   ```
 
 ### Development
 
+Start the application in development mode:
 ```bash
-$ pnpm dev
+pnpm run dev
 ```
 
 ### Build
 
 ```bash
 # For windows
-$ pnpm build:win
+pnpm build:win
 
 # For macOS
-$ pnpm build:mac
+pnpm build:mac
 
 # For Linux
-$ pnpm build:linux
+pnpm build:linux
 ```
+
+## Tech Stack
+
+- **Framework**: Electron, React, TypeScript
+- **AI Integration**: Vercel AI SDK
+- **Database**: SQLite, Drizzle ORM
+- **Styling**: Tailwind CSS
