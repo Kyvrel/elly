@@ -1,3 +1,13 @@
+## v0.0.14 (2026-01-31)
+
+## Summary
+- **DBService Refactoring**: Reorganized `DBService` by grouping operations into logical namespaces: `workspace`, `provider`, `thread`, `message`, and `settings`. This improves code organization and discoverability of database operations.
+- **Service Updates**: Updated `ChatService` and `WorkspaceManager` to consume the new namespaced API.
+- **API Server Updates**: Refactored `src/main/api/server.ts` to use the namespaced calls for all REST endpoints.
+- **Tool Updates**: Updated all filesystem and shell tools (`bash`, `edit`, `glob`, `grep`, `read`, `write`) to use `dbService.workspace.getActiveWorkspace()` for path resolution.
+
+- [#17](https://github.com/Kyvrel/elly/pull/17) refactor: namespace DBService operations
+
 ## v0.0.13 (2026-01-31)
 
 ## Summary
