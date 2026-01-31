@@ -16,6 +16,45 @@ import { desc } from 'drizzle-orm'
 import { UIMessage } from 'ai'
 
 export class DBService {
+  workspace = {
+    getAllWorkspaces: (): Workspace[] => this.getAllWorkspaces(),
+    getWorkspaceById: (id: string): Workspace | undefined => this.getWorkspaceById(id),
+    getActiveWorkspace: (): Workspace | undefined => this.getActiveWorkspace(),
+    createWorkspace: (name: string, workspacePath: string): Workspace =>
+      this.createWorkspace(name, workspacePath),
+    setActiveWorkspace: (workspaceId: string): void => this.setActiveWorkspace(workspaceId)
+  }
+
+  provider = {
+    getProviders: (): Provider[] => this.getProviders(),
+    getProviderById: (id: string): Provider | undefined => this.getProviderById(id),
+    upsertProviders: (provider: Omit<Provider, 'createdAt' | 'updatedAt'>): void =>
+      this.upsertProviders(provider),
+    deleteProvider: (id: string): void => this.deleteProvider(id)
+  }
+
+  thread = {
+    getAllThreads: (): ChatThread[] => this.getAllThreads(),
+    getThreadsById: (id: string): ChatThread | undefined => this.getThreadsById(id),
+    createThreads: (title: string, model: string): ChatThread => this.createThreads(title, model),
+    updateThread: (id: string, updates: Partial<Omit<ChatThread, 'id' | 'createdAt'>>): any =>
+      this.updateThread(id, updates),
+    deleteThread: (id: string): void => this.deleteThread(id)
+  }
+
+  message = {
+    getMessagesByThreadId: (threadId: string): ChatMessage[] => this.getMessagesByThreadId(threadId),
+    insertMessage: (msg: Omit<ChatMessage, 'createdAt' | 'updatedAt'>): ChatMessage =>
+      this.insertMessage(msg),
+    updateMessage: (id: string, message: UIMessage): ChatMessage | undefined =>
+      this.updateMessage(id, message)
+  }
+
+  settings = {
+    getSettings: (): any => this.getSettings(),
+    updateSettings: (setting: Record<string, any>): void => this.updateSettings(setting)
+  }
+
   // ===== Providers =====
 
   getProviders(): Provider[] {

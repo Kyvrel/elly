@@ -36,7 +36,7 @@ export const GrepTool: ToolDefinition = {
         glob: globPattern,
         case_sensitive
       } = GrepSchema.parse(params)
-      const workspace = dbService.getActiveWorkspace()
+      const workspace = dbService.workspace.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }
