@@ -9,8 +9,7 @@ export const formatMessages = (
 }> => {
   return messages.map((item) => {
     const content = item.message.parts
-      .filter((part: UIMessagePart<UIDataTypes, UITools>) => part.type == 'text')
-      .map((part: UIMessagePart<UIDataTypes, UITools>) => part.text)
+      .map((part: UIMessagePart<UIDataTypes, UITools>) => (part.type === 'text' ? part.text : ''))
       .join('')
     return {
       id: item.message.id,

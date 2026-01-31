@@ -43,7 +43,8 @@ export class DBService {
   }
 
   message = {
-    getMessagesByThreadId: (threadId: string): ChatMessage[] => this.getMessagesByThreadId(threadId),
+    getMessagesByThreadId: (threadId: string): ChatMessage[] =>
+      this.getMessagesByThreadId(threadId),
     insertMessage: (msg: Omit<ChatMessage, 'createdAt' | 'updatedAt'>): ChatMessage =>
       this.insertMessage(msg),
     updateMessage: (id: string, message: UIMessage): ChatMessage | undefined =>
