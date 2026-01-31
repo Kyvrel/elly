@@ -38,7 +38,7 @@ export const EditFileTool: ToolDefinition = {
           return { success: false, error: 'string not found in file' }
         }
         newContent =
-          originContent.slice(0, index) + newString + originContent.slice(index + newString.length)
+          originContent.slice(0, index) + newString + originContent.slice(index + oldString.length)
       }
       await fs.writeFile(absolutePath, newContent, 'utf-8')
       return {

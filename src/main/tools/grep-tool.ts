@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { workspaceManager } from '../services/WorkspaceManager'
 import { exec } from 'child_process'
 import { promisify } from 'util'
+import { workspaceService } from '../services/WorkspaceService'
 
 const execAsync = promisify(exec)
 
@@ -22,8 +23,19 @@ export const GrepTool: ToolDefinition = {
   needPermission: false,
   parameters: GrepSchema,
   execute: async (params) => {
-    const { pattern, path, glob, caseSensitive } = GrepSchema.parse(params)
-    // TODO
+    const { pattern, path:searchPath, glob, caseSensitive } = GrepSchema.parse(params)
+     const    workspace  = workspaceManager.getActiveWorkspace()
+     if (!workspace) {
+      return {success: false, error: 'No active workspace'}
+     }
+     workspaceManager.resolvePath(searchPath)
+
+    let currentPath :string
+    if (path) {
+       currentPath  = workspaceManager.resolvePath(path)
+    }else{
+        currentPath = workspace?.path
+    }
     } catch (error: any) {
       // Re-throw with more context
       throw new Error(
