@@ -8,7 +8,7 @@ import {
   chatThreads,
   Provider,
   providers,
-  workspace,
+  workspaces,
   Workspace
 } from '../db/schema'
 import { nanoid } from 'nanoid'
@@ -125,15 +125,15 @@ export class WorkspaceService {
   // ===== Workspaces =====
 
   getAllWorkspaces() {
-    return db.select().from(workspace).all()
+    return db.select().from(workspaces).all()
   }
 
   getWorkspaceById(id: string): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.id, id)).get()
+    return db.select().from(workspaces).where(eq(workspaces.id, id)).get()
   }
 
   getActiveWorkspace(): Workspace | undefined {
-    return db.select().from(workspace).where(eq(workspace.isActive, true)).get()
+    return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
   }
 }
 
