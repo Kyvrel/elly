@@ -20,7 +20,7 @@ export const GrepTool: ToolDefinition = {
   name: 'grep',
   description: 'grep tool',
   category: ToolCategory.SEARCH,
-  needPermission: false,
+  needsApproval: false,
   parameters: GrepSchema,
   execute: async (params) => {
     const { pattern, path:searchPath, glob, caseSensitive } = GrepSchema.parse(params)

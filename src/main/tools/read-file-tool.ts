@@ -7,7 +7,7 @@ export const ReadFileTool: ToolDefinition = {
   name: 'read_file',
   description: 'read file content',
   category: ToolCategory.READ,
-  needPermission: false,
+  needsApproval: false,
   parameters: z.object({
     file_path: z.string()
   }),

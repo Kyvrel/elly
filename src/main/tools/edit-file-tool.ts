@@ -14,7 +14,7 @@ export const EditFileTool: ToolDefinition = {
   name: 'edit_file',
   description: 'edit file content',
   category: ToolCategory.EDIT,
-  needPermission: true,
+  needsApproval: true,
   parameters: EditSchema,
   execute: async (params) => {
     try {

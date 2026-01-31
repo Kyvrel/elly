@@ -25,7 +25,7 @@ export const BashTool: ToolDefinition = {
   name: 'bash',
   description: 'bash tool',
   category: ToolCategory.EXECUTE,
-  needPermission: true,
+  needsApproval: true,
   parameters: BashSchema,
   execute: async (params) => {
     const { command, timeout } = BashSchema.parse(params)
