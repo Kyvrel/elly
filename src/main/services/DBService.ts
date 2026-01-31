@@ -15,7 +15,7 @@ import { nanoid } from 'nanoid'
 import { desc } from 'drizzle-orm'
 import { UIMessage } from 'ai'
 
-export class WorkspaceService {
+export class DBService {
   // ===== Providers =====
 
   getProviders(): Provider[] {
@@ -136,6 +136,23 @@ export class WorkspaceService {
   getActiveWorkspace(): Workspace | undefined {
     return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
   }
+
+  createWorkspace(name: string, workspacePath: string): Workspace {
+    const newWorkspace: Workspace = {
+      id: nanoid(),
+      name,
+      path: workspacePath,
+      isActive: false
+    }
+
+    db.insert(workspaces).values(newWorkspace).run()
+    return newWorkspace
+  }
+
+  setActiveWorkspace(workspaceId: string): void {
+    db.update(workspaces).set({ isActive: false }).run()
+    db.update(workspaces).set({ isActive: true }).where(eq(workspaces.id, workspaceId)).run()
+  }
 }
 
-export const workspaceService = new WorkspaceService()
+export const dbService = new DBService()

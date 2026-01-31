@@ -1,10 +1,8 @@
 import path from 'path'
 import os from 'os'
-import { db } from '../db'
-import { workspaces, Workspace } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { Workspace } from '../db/schema'
 import fs from 'fs/promises'
-import { nanoid } from 'nanoid'
+import { dbService } from './DBService'
 
 export class WorkspaceManager {
   private readonly SENSITIVE_PATTERNS = [
@@ -15,12 +13,8 @@ export class WorkspaceManager {
     /\.ssh\//
   ]
 
-  getActiveWorkspace(): Workspace | undefined {
-    return db.select().from(workspaces).where(eq(workspaces.isActive, true)).get()
-  }
-
   resolvePath(relativePath: string): string {
-    const activeWorkspace = this.getActiveWorkspace()
+    const activeWorkspace = dbService.getActiveWorkspace()
     if (!activeWorkspace) {
       throw new Error('No active workspace')
     }
@@ -43,7 +37,7 @@ export class WorkspaceManager {
   }
 
   isPathInWorkspace(filePath: string, workspaceId: string): boolean {
-    const workspace = db.select().from(workspaces).where(eq(workspaces.id, workspaceId)).get()
+    const workspace = dbService.getWorkspaceById(workspaceId)
     if (!workspace) return false
     const resolvedPath = path.resolve(filePath)
     const workspacePath = path.resolve(workspace.path)
@@ -56,24 +50,12 @@ export class WorkspaceManager {
       throw new Error('path is not a directory')
     }
 
-    const newWorkspace = {
-      id: nanoid(),
-      name,
-      path: path.resolve(dirPath),
-      isActive: false
-    }
-
-    db.insert(workspaces).values(newWorkspace).run()
-    return newWorkspace
-  }
-
-  setActiveWorkspace(workspaceId: string): void {
-    db.update(workspaces).set({ isActive: false }).run()
-    db.update(workspaces).set({ isActive: true }).where(eq(workspaces.id, workspaceId)).run()
+    const workspacePath = path.resolve(dirPath)
+    return dbService.createWorkspace(name, workspacePath)
   }
 
   async ensureActiveWorkspace(): Promise<void> {
-    const activeWorkspace = this.getActiveWorkspace()
+    const activeWorkspace = dbService.getActiveWorkspace()
     if (!activeWorkspace) {
       const defaultPath = path.join(
         os.homedir(),
@@ -85,7 +67,7 @@ export class WorkspaceManager {
       )
       await fs.mkdir(defaultPath, { recursive: true })
       const defaultWorkspace = await this.createWorkspace('Default', defaultPath)
-      this.setActiveWorkspace(defaultWorkspace.id)
+      dbService.setActiveWorkspace(defaultWorkspace.id)
       console.log(`Created default workspace at: ${defaultPath}`)
     }
   }

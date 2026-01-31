@@ -1,6 +1,7 @@
 import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
 import { workspaceManager } from '../services/WorkspaceManager'
+import { dbService } from '../services/DBService'
 import { exec } from 'child_process'
 import { promisify } from 'util'
 
@@ -35,7 +36,7 @@ export const GrepTool: ToolDefinition = {
         glob: globPattern,
         case_sensitive
       } = GrepSchema.parse(params)
-      const workspace = workspaceManager.getActiveWorkspace()
+      const workspace = dbService.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }

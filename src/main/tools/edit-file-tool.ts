@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises'
 import { workspaceManager } from '../services/WorkspaceManager'
+import { dbService } from '../services/DBService'
 import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
 
@@ -24,13 +25,16 @@ export const EditFileTool: ToolDefinition = {
   execute: async (params) => {
     try {
       const { filePath, oldString, newString, replaceAll } = EditSchema.parse(params)
-      const workspace = workspaceManager.getActiveWorkspace()
+      const workspace = dbService.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }
       const absolutePath = workspaceManager.resolvePath(filePath)
       if (!workspaceManager.isPathInWorkspace(absolutePath, workspace.id)) {
         return { success: false, error: 'File outside workspace' }
+      }
+      if (workspaceManager.isSensitiveFile(absolutePath)) {
+        return { success: false, error: 'Cannot write to sensitive file' }
       }
 
       const originContent = await fs.readFile(absolutePath, 'utf-8')
