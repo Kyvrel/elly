@@ -3,7 +3,6 @@ import { z } from 'zod'
 import { workspaceManager } from '../services/WorkspaceManager'
 import { exec } from 'child_process'
 import { promisify } from 'util'
-import { workspaceService } from '../services/WorkspaceService'
 
 const execAsync = promisify(exec)
 

@@ -12,18 +12,17 @@ export function createApiServer() {
   app.use(cors())
   app.use(express.json({ limit: '50mb' }))
 
-  app.use((req, res, next) => {
+  app.use((req, _, next) => {
     console.log(`${new Date().toISOString()} ${req.method} ${req.path}`)
     next()
   })
-
-  app.get('/api/health', (req, res) => {
+  app.get('/api/health', (_, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() })
   })
 
   // ===== Providers =====
 
-  app.get('/api/providers', (req, res) => {
+  app.get('/api/providers', (_, res) => {
     const providers = workspaceService.getProviders()
     res.json(providers)
   })
@@ -40,7 +39,7 @@ export function createApiServer() {
 
   // ===== Threads =====
 
-  app.get('/api/threads', (req, res) => {
+  app.get('/api/threads', (_, res) => {
     res.json(workspaceService.getAllThreads())
   })
 
@@ -75,7 +74,7 @@ export function createApiServer() {
 
   // ===== Settings =====
 
-  app.get('/api/settings', (req, res) => {
+  app.get('/api/settings', (_, res) => {
     const settings = workspaceService.getSettings()
     res.json(settings)
   })
@@ -87,7 +86,7 @@ export function createApiServer() {
 
   // ===== Workspaces =====
 
-  app.get('/api/workspaces', (req, res) => {
+  app.get('/api/workspaces', (_, res) => {
     const workspaces = workspaceService.getAllWorkspaces()
     res.json(workspaces)
   })
@@ -111,7 +110,7 @@ export function createApiServer() {
     }
   })
 
-  app.get('/api/workspaces/active', (req, res) => {
+  app.get('/api/workspaces/active', (_, res) => {
     const workspace = workspaceManager.getActiveWorkspace()
     if (!workspace) {
       return res.status(404).json({ error: 'No active workspace' })

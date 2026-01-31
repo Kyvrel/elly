@@ -1,5 +1,4 @@
 import WebSocket from 'ws'
-import { workspaceService } from './WorkspaceService'
 import {
   streamText,
   stepCountIs,
@@ -20,6 +19,8 @@ import {
 } from '../../shared/types-websocket'
 
 import { nanoid } from 'nanoid'
+import { workspaceService } from './WorkspaceService'
+
 export class ChatService {
   private wsClients = new Map<string, WebSocket>()
   registerWSClient(threadId: string, ws: WebSocket) {
@@ -38,7 +39,6 @@ export class ChatService {
     )
     try {
       this.saveUserMessage(threadId, message)
-
       workspaceService.updateThread(threadId, { isGenerating: true })
 
       const messages = workspaceService.getMessagesByThreadId(threadId)

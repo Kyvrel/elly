@@ -33,7 +33,7 @@ export class ToolRegistry {
       aiTools[name] = tool({
         description: toolDef.description,
         inputSchema: toolDef.parameters,
-        execute: async (params, context) => {
+        execute: async (params, _) => {
           // Request permission before executing
           if (toolDef.needsApproval) {
             const approved = await permissionManager.requestPermission(toolDef, params)
