@@ -1,3 +1,12 @@
+## v0.0.15 (2026-01-31)
+
+## Summary
+- **Configuration**: Added `src/shared/**/*` to `tsconfig.web.json` to resolve the TS6307 error where shared types were not included in the web build context.
+- **Renderer**: Updated `formatMessages.ts` to use a more robust mapping for message parts, fixing a potential type error when accessing `part.text`.
+- **Main**: Applied minor formatting improvements to `DBService.ts` for better readability.
+
+- [#18](https://github.com/Kyvrel/elly/pull/18) fix: resolve TS6307 error and improve message formatting
+
 ## v0.0.14 (2026-01-31)
 
 ## Summary
