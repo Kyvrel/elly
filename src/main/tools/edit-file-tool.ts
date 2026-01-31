@@ -4,15 +4,15 @@ import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
 
 const EditSchema = z.object({
-  filePath: z.string().describe('file path'),
-  oldString: z.string().describe('old strin'),
-  newString: z.string().describe('new string'),
-  replaceAll: z.boolean().optional().default(false).describe('replace all')
+  filePath: z.string().describe('Relative or absolute path to the file.'),
+  oldString: z.string().describe('The specific text to search for in the file.'),
+  newString: z.string().describe('The replacement text.'),
+  replaceAll: z.boolean().optional().default(false).describe('If true, replaces all occurrences; if false, only the first.')
 })
 
 export const EditFileTool: ToolDefinition = {
   name: 'edit_file',
-  description: 'edit file content',
+  description: 'Edits a file by replacing a specific string with a new string. Requires the old string to exist in the file.',
   category: ToolCategory.EDIT,
   needsApproval: true,
   parameters: EditSchema,

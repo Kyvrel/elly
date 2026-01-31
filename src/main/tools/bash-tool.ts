@@ -7,9 +7,9 @@ import { promisify } from 'util'
 const execAsync = promisify(exec)
 
 const BashSchema = z.object({
-  command: z.string().describe('bash command'),
-  description: z.string().optional().describe('usage for this command'),
-  timeout: z.number().optional().default(120000).describe('timeout')
+  command: z.string().describe('The shell command to execute.'),
+  description: z.string().optional().describe('A brief explanation of what the command does.'),
+  timeout: z.number().optional().default(120000).describe('Maximum execution time in milliseconds.')
 })
 
 const DANGEROUS_PATTERNS = [
@@ -23,7 +23,7 @@ const DANGEROUS_PATTERNS = [
 
 export const BashTool: ToolDefinition = {
   name: 'bash',
-  description: 'bash tool',
+  description: 'Executes a shell command in the active workspace and returns the output (stdout and stderr).',
   category: ToolCategory.EXECUTE,
   needsApproval: true,
   parameters: BashSchema,

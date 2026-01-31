@@ -5,11 +5,11 @@ import { z } from 'zod'
 
 export const ReadFileTool: ToolDefinition = {
   name: 'read_file',
-  description: 'read file content',
+  description: 'Reads and returns the complete content of a specified file.',
   category: ToolCategory.READ,
   needsApproval: false,
   parameters: z.object({
-    file_path: z.string()
+    file_path: z.string().describe('Path to the file to be read.')
   }),
   execute: async ({ file_path }) => {
     try {
