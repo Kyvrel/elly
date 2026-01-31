@@ -24,28 +24,28 @@ export function createApiServer(): Server {
   // ===== Providers =====
 
   app.get('/api/providers', (_, res) => {
-    const providers = dbService.getProviders()
+    const providers = dbService.provider.getProviders()
     res.json(providers)
   })
 
   app.post('/api/providers', (req, res) => {
-    dbService.upsertProviders(req.body)
+    dbService.provider.upsertProviders(req.body)
     res.status(201).json({ success: true })
   })
 
   app.delete('/api/providers/:id', (req, res) => {
-    dbService.deleteProvider(req.params.id)
+    dbService.provider.deleteProvider(req.params.id)
     res.status(204).send()
   })
 
   // ===== Threads =====
 
   app.get('/api/threads', (_, res) => {
-    res.json(dbService.getAllThreads())
+    res.json(dbService.thread.getAllThreads())
   })
 
   app.get('/api/threads/:id', (req, res) => {
-    const thread = dbService.getThreadsById(req.params.id)
+    const thread = dbService.thread.getThreadsById(req.params.id)
     if (!thread) {
       return res.status(404).json({ error: 'thread not found' })
     }
@@ -54,41 +54,41 @@ export function createApiServer(): Server {
 
   app.post('/api/threads', (req, res) => {
     const { title, model } = req.body
-    const thread = dbService.createThreads(title, model)
+    const thread = dbService.thread.createThreads(title, model)
     res.status(201).json(thread)
   })
 
   app.put('/api/threads/:id', (req, res) => {
-    dbService.updateThread(req.params.id, req.body)
+    dbService.thread.updateThread(req.params.id, req.body)
     res.json({ success: true })
   })
 
   app.delete('/api/threads/:id', (req, res) => {
-    dbService.deleteThread(req.params.id)
+    dbService.thread.deleteThread(req.params.id)
     res.status(204).send()
   })
 
   // ===== Messages =====
   app.get('/api/threads/:threadId/messages', (req, res) => {
-    res.json(dbService.getMessagesByThreadId(req.params.threadId))
+    res.json(dbService.message.getMessagesByThreadId(req.params.threadId))
   })
 
   // ===== Settings =====
 
   app.get('/api/settings', (_, res) => {
-    const settings = dbService.getSettings()
+    const settings = dbService.settings.getSettings()
     res.json(settings)
   })
 
   app.put('/api/settings', (req, res) => {
-    dbService.updateSettings(req.body)
+    dbService.settings.updateSettings(req.body)
     res.json({ success: true })
   })
 
   // ===== Workspaces =====
 
   app.get('/api/workspaces', (_, res) => {
-    const workspaces = dbService.getAllWorkspaces()
+    const workspaces = dbService.workspace.getAllWorkspaces()
     res.json(workspaces)
   })
 
@@ -104,7 +104,7 @@ export function createApiServer(): Server {
 
   app.put('/api/workspaces/:id/activate', (req, res) => {
     try {
-      dbService.setActiveWorkspace(req.params.id)
+      dbService.workspace.setActiveWorkspace(req.params.id)
       res.json({ success: true })
     } catch (error: any) {
       res.status(400).json({ error: error.message })
@@ -112,7 +112,7 @@ export function createApiServer(): Server {
   })
 
   app.get('/api/workspaces/active', (_, res) => {
-    const workspace = dbService.getActiveWorkspace()
+    const workspace = dbService.workspace.getActiveWorkspace()
     if (!workspace) {
       return res.status(404).json({ error: 'No active workspace' })
     }

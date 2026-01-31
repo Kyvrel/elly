@@ -19,7 +19,7 @@ export const ReadFileTool: ToolDefinition = {
   execute: async (params) => {
     try {
       const { file_path } = ReadFileSchema.parse(params)
-      const workspace = dbService.getActiveWorkspace()
+      const workspace = dbService.workspace.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }

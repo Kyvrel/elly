@@ -25,7 +25,7 @@ export const EditFileTool: ToolDefinition = {
   execute: async (params) => {
     try {
       const { filePath, oldString, newString, replaceAll } = EditSchema.parse(params)
-      const workspace = dbService.getActiveWorkspace()
+      const workspace = dbService.workspace.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }

@@ -14,7 +14,7 @@ export class WorkspaceManager {
   ]
 
   resolvePath(relativePath: string): string {
-    const activeWorkspace = dbService.getActiveWorkspace()
+    const activeWorkspace = dbService.workspace.getActiveWorkspace()
     if (!activeWorkspace) {
       throw new Error('No active workspace')
     }
@@ -37,7 +37,7 @@ export class WorkspaceManager {
   }
 
   isPathInWorkspace(filePath: string, workspaceId: string): boolean {
-    const workspace = dbService.getWorkspaceById(workspaceId)
+    const workspace = dbService.workspace.getWorkspaceById(workspaceId)
     if (!workspace) return false
     const resolvedPath = path.resolve(filePath)
     const workspacePath = path.resolve(workspace.path)
@@ -51,11 +51,11 @@ export class WorkspaceManager {
     }
 
     const workspacePath = path.resolve(dirPath)
-    return dbService.createWorkspace(name, workspacePath)
+    return dbService.workspace.createWorkspace(name, workspacePath)
   }
 
   async ensureActiveWorkspace(): Promise<void> {
-    const activeWorkspace = dbService.getActiveWorkspace()
+    const activeWorkspace = dbService.workspace.getActiveWorkspace()
     if (!activeWorkspace) {
       const defaultPath = path.join(
         os.homedir(),
@@ -67,7 +67,7 @@ export class WorkspaceManager {
       )
       await fs.mkdir(defaultPath, { recursive: true })
       const defaultWorkspace = await this.createWorkspace('Default', defaultPath)
-      dbService.setActiveWorkspace(defaultWorkspace.id)
+      dbService.workspace.setActiveWorkspace(defaultWorkspace.id)
       console.log(`Created default workspace at: ${defaultPath}`)
     }
   }

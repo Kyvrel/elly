@@ -36,7 +36,7 @@ export const BashTool: ToolDefinition = {
       throw new Error('Dangerous command blocked')
     }
 
-    const workspace = dbService.getActiveWorkspace()
+    const workspace = dbService.workspace.getActiveWorkspace()
     const cwd = workspace?.path || process.cwd()
 
     try {

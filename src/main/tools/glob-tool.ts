@@ -4,7 +4,7 @@ import { dbService } from '../services/DBService'
 import { ToolCategory, ToolDefinition } from '../../shared/types-tools'
 import { z } from 'zod'
 export async function Glob(pattern: string): Promise<string[]> {
-  const workspace = dbService.getActiveWorkspace()
+  const workspace = dbService.workspace.getActiveWorkspace()
   return await glob(pattern, { cwd: workspace?.path })
 }
 
@@ -23,7 +23,7 @@ export const GlobTool: ToolDefinition = {
   execute: async (params) => {
     try {
       const { pattern, path: searchPath } = GlobSchema.parse(params)
-      const workspace = dbService.getActiveWorkspace()
+      const workspace = dbService.workspace.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }

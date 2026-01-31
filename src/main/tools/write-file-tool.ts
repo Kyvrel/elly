@@ -19,7 +19,7 @@ export const WriteFileTool: ToolDefinition = {
   execute: async (params) => {
     try {
       const { file_path, content } = WriteFileSchema.parse(params)
-      const workspace = dbService.getActiveWorkspace()
+      const workspace = dbService.workspace.getActiveWorkspace()
       if (!workspace) {
         return { success: false, error: 'No active workspace' }
       }

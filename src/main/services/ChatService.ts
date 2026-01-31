@@ -44,9 +44,9 @@ export class ChatService {
     )
     try {
       this.saveUserMessage(threadId, message)
-      dbService.updateThread(threadId, { isGenerating: true })
+      dbService.thread.updateThread(threadId, { isGenerating: true })
 
-      const messages = dbService.getMessagesByThreadId(threadId)
+      const messages = dbService.message.getMessagesByThreadId(threadId)
       console.log('[sendMessage] messages: ', messages)
       console.log('[sendMessage] model: ', model)
 
@@ -67,7 +67,7 @@ export class ChatService {
         readUIMessageStream({ stream: result.toUIMessageStream() })
       )
 
-      dbService.updateThread(threadId, { isGenerating: false })
+      dbService.thread.updateThread(threadId, { isGenerating: false })
 
       const doneMessage: WSServerDoneMessage = {
         type: WS_SERVER_MESSAGE_TYPES.DONE
@@ -95,7 +95,7 @@ export class ChatService {
       ]
     }
 
-    dbService.insertMessage({
+    dbService.message.insertMessage({
       id: `${threadId}--${userMessageId}`,
       threadId,
       parentId: null,
@@ -110,7 +110,7 @@ export class ChatService {
     tools: Record<string, any>
   }> {
     const [providerId, modelName] = model.split('/')
-    const provider = dbService.getProviderById(providerId)
+    const provider = dbService.provider.getProviderById(providerId)
 
     if (!provider) {
       throw new Error(`Provider not found: ${providerId}`)
@@ -158,7 +158,7 @@ export class ChatService {
       }
 
       if (isFirstMessage) {
-        dbService.insertMessage({
+        dbService.message.insertMessage({
           id: dbMessageId,
           threadId,
           parentId: null,
@@ -166,7 +166,7 @@ export class ChatService {
         })
         isFirstMessage = false
       } else {
-        dbService.updateMessage(dbMessageId, uiMessage)
+        dbService.message.updateMessage(dbMessageId, uiMessage)
       }
 
       // Send complete parts array via WebSocket
@@ -176,7 +176,7 @@ export class ChatService {
 
   private handleError(threadId: string, error: Error): void {
     console.error(`failed to sendMessage`, error)
-    dbService.updateThread(threadId, { isGenerating: false })
+    dbService.thread.updateThread(threadId, { isGenerating: false })
 
     const ws = this.wsClients.get(threadId)
     const errorMessage: WSServerErrorMessage = {
