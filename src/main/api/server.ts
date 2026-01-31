@@ -1,3 +1,4 @@
+import { Server } from 'http'
 import express from 'express'
 import cors from 'cors'
 import { chatService } from '../services/ChatService.js'
@@ -6,7 +7,7 @@ import { workspaceService } from '../services/WorkspaceService.js'
 
 const API_PORT = 23001
 
-export function createApiServer() {
+export function createApiServer(): Server {
   const app = express()
 
   app.use(cors())

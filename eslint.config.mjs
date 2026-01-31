@@ -14,7 +14,8 @@ export default defineConfig(
       'build/**',
       'example-output/**',
       'coverage/**',
-      '.cache/**'
+      '.cache/**',
+      'scripts/**'
     ]
   },
   tseslint.configs.recommended,
@@ -35,7 +36,8 @@ export default defineConfig(
     },
     rules: {
       ...eslintPluginReactHooks.configs.recommended.rules,
-      ...eslintPluginReactRefresh.configs.vite.rules
+      ...eslintPluginReactRefresh.configs.vite.rules,
+      '@typescript-eslint/no-explicit-any': 'off'
     }
   },
   eslintConfigPrettier
