@@ -1,3 +1,20 @@
+## v0.0.12 (2026-01-31)
+
+## Summary
+- **Chat Threads & DB**: Fixed workspace references and renamed database tables for consistency (`workspace` → `workspaces`).
+- **Tools Refinement**:
+    - Added `edit_file` and `grep` tools with workspace path validation.
+    - Improved `grep` tool performance by integrating `ripgrep`.
+    - Refactored tool parameters to camelCase and updated all tool descriptions for better AI interaction.
+    - Fixed a critical bug in `edit_file` where replacement slicing used the wrong string length.
+- **Code Quality & Refactoring**:
+    - Renamed `needPermission` to `needsApproval` throughout the application.
+    - Added explicit return types and refactored message formatting logic.
+    - Cleaned up unused API parameters, deleted obsolete tests, and updated ESLint configurations.
+- **UI & IPC**: Updated `ChatThread`, `Sidebar`, and IPC handlers to align with the new thread and workspace structure.
+
+- [#15](https://github.com/Kyvrel/elly/pull/15) feat: improve chat threads, refactor tools, and enhance codebase consistency
+
 ## v0.0.11 (2026-01-30)
 
 - What
