@@ -1,3 +1,12 @@
+## v0.0.16 (2026-02-01)
+
+## Summary
+*   **ESLint Configuration**: Switched from `eslint/config`'s `defineConfig` to `typescript-eslint`'s `tseslint.config` in `eslint.config.mjs`.
+*   **Dependencies**: Added `typescript-eslint` to `devDependencies`.
+*   **Bug Fix**: Resolved the type mismatch error where `@electron-toolkit/eslint-config-ts` returned an array that was incompatible with the standard ESLint `defineConfig` helper.
+
+- [#19](https://github.com/Kyvrel/elly/pull/19) fix: resolve typescript error in eslint configuration
+
 ## v0.0.15 (2026-01-31)
 
 ## Summary
