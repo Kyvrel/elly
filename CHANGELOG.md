@@ -1,3 +1,7 @@
+## v0.0.17 (2026-02-04)
+
+- [#20](https://github.com/Kyvrel/elly/pull/20) feat: Setup Shadcn UI. Add components.json, deps, Button/Input/utils,
+
 ## v0.0.16 (2026-02-01)
 
 ## Summary
