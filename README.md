@@ -1,65 +1,182 @@
-# elly
+# Elly
 
-**elly** is an Electron-based desktop application that provides a powerful AI agent interface. It allows users to interact with various AI models (Claude, GPT, Gemini) to perform complex tasks, including file operations, shell command execution, and code editing within a local workspace.
+Elly is an Electron desktop app.
+It is an AI chat app.
+It streams replies in real time.
+It can also run local tools (read/write files, run shell commands) with your approval.
 
 ## Features
 
-- **Multi-Model Support**: Integrates with major AI providers via the Vercel AI SDK.
-- **Tool-Augmented Chat**: Equipped with local tools for Bash execution, file I/O, and codebase searching.
-- **Workspace Management**: Organize work into specific directories, with AI operations scoped to the active workspace.
-- **Local Persistence**: Stores chat history and configurations locally using SQLite.
-- **Human-in-the-loop**: Requires user approval for sensitive actions like executing commands or modifying files.
+- Chat threads and message history (SQLite)
+- Streaming assistant output (WebSocket)
+- Multiple AI providers (OpenAI, Anthropic, Google) via Vercel AI SDK
+- Tool calling with a permission popup:
+  - `read_file` / `write_file` / `edit_file`
+  - `bash`
+  - `glob` / `grep`
+- Workspace sandbox for tools:
+  - Tools can only access files inside the active workspace
+  - Sensitive files are blocked (like `.env` and `.ssh`)
 
-## Project Structure
+## Tech stack
 
-- `src/main`: Electron main process, services, and AI tools.
-- `src/renderer`: React-based frontend UI.
-- `src/shared`: Shared types and constants.
-- `drizzle`: Database migrations and schemas.
+- Electron + electron-vite
+- React 19 + TypeScript
+- Tailwind CSS v4 + shadcn/ui
+- Express (local HTTP API) + ws (WebSocket)
+- SQLite (better-sqlite3) + Drizzle ORM
+- Vitest
 
-## Getting Started
+## Ports
+
+- HTTP API: `http://localhost:23001`
+- WebSocket: `ws://localhost:8765`
+
+## Getting started
 
 ### Prerequisites
 
-- Node.js (LTS recommended)
-- [pnpm](https://pnpm.io/)
+- Node.js 20+
+- pnpm 9+
 
-### Installation
+If you do not have pnpm:
 
-1. Install dependencies:
-   ```bash
-   pnpm install
-   ```
-
-2. Initialize the local database:
-   ```bash
-   pnpm run db:generate
-   pnpm run db:migrate
-   ```
-
-### Development
-
-Start the application in development mode:
 ```bash
-pnpm run dev
+corepack enable
+corepack prepare pnpm@9 --activate
 ```
 
-### Build
+### Install
 
 ```bash
-# For windows
-pnpm build:win
+pnpm install
+```
 
-# For macOS
+### Run (dev)
+
+Start the Electron app.
+This also starts AI SDK DevTools.
+
+```bash
+pnpm dev
+```
+
+Start only the app (no DevTools):
+
+```bash
+pnpm dev:app
+```
+
+Start only the API server:
+
+```bash
+pnpm dev:api
+```
+
+### Test / lint / format
+
+```bash
+pnpm test
+pnpm lint
+pnpm format
+```
+
+TypeScript typecheck:
+
+```bash
+pnpm typecheck
+# or
+pnpm typecheck:node
+pnpm typecheck:web
+```
+
+## AI provider setup
+
+The app reads providers from the local database table `providers`.
+The UI currently uses the model string `google/gemini-2.5-flash`.
+So you need a provider row with id `google`.
+
+1. Start the app (or at least the API server).
+2. Create a provider by calling the API:
+
+```bash
+curl -X POST http://localhost:23001/api/providers \
+  -H "Content-Type: application/json" \
+  -d '{
+    "id": "google",
+    "name": "Google",
+    "type": "google",
+    "apiKey": "YOUR_API_KEY",
+    "baseUrl": "",
+    "enabled": true
+  }'
+```
+
+Notes:
+- Your API key is stored in SQLite.
+- Set `baseUrl` to an empty string (`""`) to use the default API URL.
+- Do not commit or share your `elly.db` file.
+
+## Database (Drizzle + SQLite)
+
+- Dev database file: `./elly.db`
+- Prod database file: Electron `userData/elly.db` (fallback: `~/.elly/elly.db`)
+
+Migrations:
+
+```bash
+pnpm db:generate
+pnpm db:migrate
+```
+
+Seed demo data (fake keys, for UI testing):
+
+```bash
+pnpm db:seed
+```
+
+Open Drizzle Studio:
+
+```bash
+pnpm db:studio
+```
+
+## Tool permissions
+
+Some tools need your approval before they run.
+The renderer shows a popup.
+
+See `docs/tool-call.md` for the flow.
+
+Sensitive files are blocked by default:
+
+- `.env` and `.env.*`
+- `.git/config`
+- `id_rsa`
+- `.ssh/`
+
+## Project structure
+
+- `src/main/`: Electron main process (DB, API server, tools, IPC)
+- `src/preload/`: Preload bridge (`window.api`)
+- `src/renderer/`: React UI
+- `src/shared/`: Shared types (IPC and WebSocket messages)
+- `docs/`: Developer docs
+
+## Build
+
+Electron Builder config is in `electron-builder.yml`.
+
+```bash
 pnpm build:mac
-
-# For Linux
+pnpm build:win
 pnpm build:linux
 ```
 
-## Tech Stack
+## Troubleshooting
 
-- **Framework**: Electron, React, TypeScript
-- **AI Integration**: Vercel AI SDK
-- **Database**: SQLite, Drizzle ORM
-- **Styling**: Tailwind CSS
+- API not reachable: check port `23001`
+- No streaming output: check WebSocket `8765`
+- DB errors:
+  1. Close the running Electron app.
+  2. Run `pnpm db:migrate`.
