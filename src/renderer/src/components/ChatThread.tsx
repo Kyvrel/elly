@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { api } from '.././lib/api'
-import { ChatThreadProps } from '@renderer/App'
 import ChatInput from './ChatInput'
 import { formatMessages } from './formatMessages'
 import type { UIMessagePart, UIDataTypes, UITools } from 'ai'
@@ -11,10 +10,8 @@ import {
   isDoneMessage
 } from '../../../shared/types-websocket'
 
-export interface ChatInputProps {
-  onSend: () => void
-  input: string
-  onType: (input: string) => void
+export interface ChatThreadProps {
+  threadId: string
 }
 
 export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
@@ -33,6 +30,11 @@ export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
   >([])
 
   const isAssistant = (role: string): boolean => role === 'assistant' || role === 'ai'
+
+  const getMessageBubbleClass = (role: string): string => {
+    const colorClass = isAssistant(role) ? '' : 'bg-primary text-primary-foreground'
+    return `${colorClass} max-w-[80%] rounded-lg p-3`
+  }
   useEffect((): void => {
     if (!threadId) return
     const load = async (): Promise<void> => {
@@ -110,7 +112,7 @@ export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white ">
+    <div className="flex flex-col h-full w-full">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
@@ -119,20 +121,14 @@ export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
         {messages.map((message) => (
           <div
             key={`${message.id}`}
-            className={`flex ${isAssistant(message.role) ? 'justify-start' : 'justify-end'} `}
+            className={`flex ${isAssistant(message.role) ? 'justify-start' : 'justify-end'}`}
           >
-            <div
-              className={`${isAssistant(message.role) ? ' bg-gray-100 text-gray-800' : 'bg-blue-500 text-white'} max-w-[80%] rounded-lg p-3`}
-            >
-              {message.content}
-            </div>
+            <div className={getMessageBubbleClass(message.role)}>{message.content}</div>
           </div>
         ))}
         {streamingContent && (
           <div className="flex justify-start">
-            <div className="bg-gray-100 text-gray-800  max-w-[80%] rounded-lg p-3">
-              {streamingContent}
-            </div>
+            <div className={getMessageBubbleClass('assistant')}>{streamingContent}</div>
           </div>
         )}
         <div ref={messagesEndRef}></div>
