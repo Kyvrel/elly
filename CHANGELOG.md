@@ -1,3 +1,9 @@
+## v0.0.18 (2026-02-05)
+
+## Summary
+
+- [#21](https://github.com/Kyvrel/elly/pull/21) refactor: upgrade shadcn/ui components and improve layout structure
+
 ## v0.0.17 (2026-02-04)
 
 - [#20](https://github.com/Kyvrel/elly/pull/20) feat: Setup Shadcn UI. Add components.json, deps, Button/Input/utils,
