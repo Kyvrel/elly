@@ -11,6 +11,10 @@
   - Replace simple components with shadcn/ui for a polished look.
   - Add loading skeletons and toast notifications (e.g., sonner).
   - Add framer-motion animations for transitions.
+  1. ChatInput (easiest) → 2 components
+  2. Sidebar (simple) → multiple buttons
+  3. PermissionDialog (medium) → needs Dialog component
+  4. ChatThread (complex) → uses migrated ChatInput
 - **Reliability & Security**:
   - Add React Error Boundaries.
   - Move hardcoded URLs to environment variables.

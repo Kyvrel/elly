@@ -110,11 +110,11 @@ export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
   }
 
   return (
-    <div className="flex-1 flex flex-col h-full bg-white ">
+    <div className="flex min-h-0 flex-col h-full w-full">
       <div
         ref={scrollContainerRef}
         onScroll={handleScroll}
-        className="flex-1 p-4 overflow-y-auto space-y-4"
+        className="min-h-0 flex-1 p-4 overflow-y-auto space-y-4"
       >
         {messages.map((message) => (
           <div

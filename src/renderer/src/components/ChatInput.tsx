@@ -10,7 +10,7 @@ import {
 
 export default function ChatInput({ onSend, input, onType }: ChatInputProps): React.JSX.Element {
   return (
-    <FieldGroup className="w-full px-4 py-4">
+    <FieldGroup className="sticky bottom-0 z-20 w-full shrink-0 border-t bg-background px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
       <Field>
         <InputGroup>
           <InputGroupTextarea

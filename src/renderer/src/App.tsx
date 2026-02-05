@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { api } from './lib/api'
-import Sidebar from './components/Sidebar'
+import { AppSidebar } from './components/AppSidebar'
 import { ChatThread } from './components/ChatThread'
 import { PermissionDialog } from './components/PermissionDialog'
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar'
 
 export interface SidebarProps {
   threads: any[]
@@ -40,17 +41,20 @@ function App(): React.JSX.Element {
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <>
       <PermissionDialog />
-      <Sidebar
-        threads={threads}
-        activeId={activeThreadId}
-        onSelect={setActiveThreadId}
-        onNewChat={handleNewChat}
-      />
-
-      <ChatThread threadId={activeThreadId} />
-    </div>
+      <SidebarProvider defaultOpen={true} className="w-full min-h-svh overflow-hidden">
+        <AppSidebar
+          threads={threads}
+          activeId={activeThreadId}
+          onSelect={setActiveThreadId}
+          onNewChat={handleNewChat}
+        />
+        <SidebarInset className="flex min-h-0 flex-col overflow-hidden">
+          <ChatThread threadId={activeThreadId} />
+        </SidebarInset>
+      </SidebarProvider>
+    </>
   )
 }
 
