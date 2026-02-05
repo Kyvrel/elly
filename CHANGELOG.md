@@ -5,15 +5,17 @@
 ## v0.0.16 (2026-02-01)
 
 ## Summary
-*   **ESLint Configuration**: Switched from `eslint/config`'s `defineConfig` to `typescript-eslint`'s `tseslint.config` in `eslint.config.mjs`.
-*   **Dependencies**: Added `typescript-eslint` to `devDependencies`.
-*   **Bug Fix**: Resolved the type mismatch error where `@electron-toolkit/eslint-config-ts` returned an array that was incompatible with the standard ESLint `defineConfig` helper.
 
-- [#19](https://github.com/Kyvrel/elly/pull/19) fix: resolve typescript error in eslint configuration
+- **ESLint Configuration**: Switched from `eslint/config`'s `defineConfig` to `typescript-eslint`'s `tseslint.config` in `eslint.config.mjs`.
+- **Dependencies**: Added `typescript-eslint` to `devDependencies`.
+- **Bug Fix**: Resolved the type mismatch error where `@electron-toolkit/eslint-config-ts` returned an array that was incompatible with the standard ESLint `defineConfig` helper.
+
+* [#19](https://github.com/Kyvrel/elly/pull/19) fix: resolve typescript error in eslint configuration
 
 ## v0.0.15 (2026-01-31)
 
 ## Summary
+
 - **Configuration**: Added `src/shared/**/*` to `tsconfig.web.json` to resolve the TS6307 error where shared types were not included in the web build context.
 - **Renderer**: Updated `formatMessages.ts` to use a more robust mapping for message parts, fixing a potential type error when accessing `part.text`.
 - **Main**: Applied minor formatting improvements to `DBService.ts` for better readability.
@@ -23,6 +25,7 @@
 ## v0.0.14 (2026-01-31)
 
 ## Summary
+
 - **DBService Refactoring**: Reorganized `DBService` by grouping operations into logical namespaces: `workspace`, `provider`, `thread`, `message`, and `settings`. This improves code organization and discoverability of database operations.
 - **Service Updates**: Updated `ChatService` and `WorkspaceManager` to consume the new namespaced API.
 - **API Server Updates**: Refactored `src/main/api/server.ts` to use the namespaced calls for all REST endpoints.
@@ -33,6 +36,7 @@
 ## v0.0.13 (2026-01-31)
 
 ## Summary
+
 This PR refactors the database interaction layer by renaming `WorkspaceService` to `DBService` and centralizing all database-related operations within it. This improves the separation of concerns and simplifies the API and service layers.
 
 - [#16](https://github.com/Kyvrel/elly/pull/16) refactor: rename WorkspaceService to DBService and centralize database operations
@@ -40,16 +44,17 @@ This PR refactors the database interaction layer by renaming `WorkspaceService` 
 ## v0.0.12 (2026-01-31)
 
 ## Summary
+
 - **Chat Threads & DB**: Fixed workspace references and renamed database tables for consistency (`workspace` → `workspaces`).
 - **Tools Refinement**:
-    - Added `edit_file` and `grep` tools with workspace path validation.
-    - Improved `grep` tool performance by integrating `ripgrep`.
-    - Refactored tool parameters to camelCase and updated all tool descriptions for better AI interaction.
-    - Fixed a critical bug in `edit_file` where replacement slicing used the wrong string length.
+  - Added `edit_file` and `grep` tools with workspace path validation.
+  - Improved `grep` tool performance by integrating `ripgrep`.
+  - Refactored tool parameters to camelCase and updated all tool descriptions for better AI interaction.
+  - Fixed a critical bug in `edit_file` where replacement slicing used the wrong string length.
 - **Code Quality & Refactoring**:
-    - Renamed `needPermission` to `needsApproval` throughout the application.
-    - Added explicit return types and refactored message formatting logic.
-    - Cleaned up unused API parameters, deleted obsolete tests, and updated ESLint configurations.
+  - Renamed `needPermission` to `needsApproval` throughout the application.
+  - Added explicit return types and refactored message formatting logic.
+  - Cleaned up unused API parameters, deleted obsolete tests, and updated ESLint configurations.
 - **UI & IPC**: Updated `ChatThread`, `Sidebar`, and IPC handlers to align with the new thread and workspace structure.
 
 - [#15](https://github.com/Kyvrel/elly/pull/15) feat: improve chat threads, refactor tools, and enhance codebase consistency

@@ -37,13 +37,13 @@ export function PermissionDialog(): React.JSX.Element | null {
           </button>
           <button
             onClick={() => respond('approve_once')}
-            className="rounded-md  bg-blue-600 px-2 py-1 font-medium text-white hover:bg-blue-700"
+            className="rounded-md bg-blue-600 px-2 py-1 font-medium text-white hover:bg-blue-700"
           >
             Allow Once
           </button>
           <button
             onClick={() => respond('approve_all')}
-            className="rounded-md  bg-zinc-900 px-2 py-1 font-medium text-white hover:bg-zinc-800"
+            className="rounded-md bg-zinc-900 px-2 py-1 font-medium text-white hover:bg-zinc-800"
           >
             Always Allow
           </button>

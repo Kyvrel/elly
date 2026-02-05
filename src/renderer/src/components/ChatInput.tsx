@@ -1,5 +1,3 @@
-import { ChatInputProps } from './ChatThread'
-
 import { Field, FieldGroup } from '@/components/ui/field'
 import {
   InputGroup,
@@ -8,9 +6,15 @@ import {
   InputGroupTextarea
 } from '@/components/ui/input-group'
 
+export interface ChatInputProps {
+  onSend: () => void
+  input: string
+  onType: (input: string) => void
+}
+
 export default function ChatInput({ onSend, input, onType }: ChatInputProps): React.JSX.Element {
   return (
-    <FieldGroup className="sticky bottom-0 z-20 w-full shrink-0 border-t bg-background px-4 pt-4 pb-[calc(1rem+env(safe-area-inset-bottom))]">
+    <FieldGroup className="sticky bottom-0 z-20 w-full bg-background p-4">
       <Field>
         <InputGroup>
           <InputGroupTextarea

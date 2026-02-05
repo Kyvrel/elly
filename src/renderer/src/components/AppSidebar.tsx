@@ -22,11 +22,11 @@ interface AppSidebarProps {
 export function AppSidebar({ threads, activeId, onSelect, onNewChat }: AppSidebarProps) {
   return (
     <Sidebar collapsible="icon">
-      <SidebarHeader className="border-b border-sidebar-border">
+      <SidebarHeader>
         <div className="p-2">
           <Button onClick={onNewChat} className="w-full">
             <Plus className="h-4 w-4" />
-            <span className="ml-2">New Chat</span>
+            <span>New Chat</span>
           </Button>
         </div>
       </SidebarHeader>

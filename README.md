@@ -113,6 +113,7 @@ curl -X POST http://localhost:23001/api/providers \
 ```
 
 Notes:
+
 - Your API key is stored in SQLite.
 - Set `baseUrl` to an empty string (`""`) to use the default API URL.
 - Do not commit or share your `elly.db` file.
