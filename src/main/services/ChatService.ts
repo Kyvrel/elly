@@ -47,7 +47,7 @@ export class ChatService {
       dbService.thread.updateThread(threadId, { isGenerating: true })
 
       const messages = dbService.message.getMessagesByThreadId(threadId)
-      console.log('[sendMessage] messages: ', messages)
+      console.log('[sendMessage] messages: ', JSON.stringify(messages))
       console.log('[sendMessage] model: ', model)
 
       const { aiModel, tools } = await this.prepareAIModel(model)

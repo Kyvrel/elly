@@ -25,7 +25,7 @@ export const ReadFileTool: ToolDefinition = {
       }
       const absolutePath = workspaceManager.resolvePath(file_path)
       if (!workspaceManager.isPathInWorkspace(absolutePath, workspace.id)) {
-        return { success: false, error: 'File outside worksapce' }
+        return { success: false, error: 'File outside workspace' }
       }
       if (workspaceManager.isSensitiveFile(absolutePath)) {
         return { success: false, error: 'Sensitive file blocked' }
