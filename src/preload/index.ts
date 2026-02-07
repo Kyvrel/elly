@@ -29,7 +29,8 @@ const api = {
     }
   },
   sendPermissionDecision: (requestId: string, decision: string): Promise<void> =>
-    ipcRenderer.invoke('tool:permission-decision', { requestId, decision })
+    ipcRenderer.invoke('tool:permission-decision', { requestId, decision }),
+  getPendingPermission: (): Promise<any> => ipcRenderer.invoke('tool:permission-pending')
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to

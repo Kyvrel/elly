@@ -62,6 +62,11 @@ export class PermissionManager extends EventEmitter {
     this.emit(`decision-${requestId}`, decision)
   }
 
+  getLatestPendingRequest(): PermissionRequest | null {
+    const values = Array.from(this.pendingRequests.values())
+    return values.length > 0 ? values[values.length - 1] : null
+  }
+
   resetAutoApprovals(): void {
     this.autoApprovals.clear()
   }
