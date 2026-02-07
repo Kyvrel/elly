@@ -1,7 +1,7 @@
 import { BrowserWindow, clipboard, ipcMain, shell } from 'electron'
 import { IPC_CHANNELS } from '../../shared/ipc-channels'
 import { toolService } from '../services/ToolService'
-import { permissionManager } from '../services/PermissionManager'
+import { PERMISSION_EVENTS, permissionManager } from '../services/PermissionManager'
 
 export function setupIPCHandlers(mainWindow: BrowserWindow): void {
   // window control
@@ -44,21 +44,21 @@ export function setupIPCHandlers(mainWindow: BrowserWindow): void {
   })
 
   // tool
-  ipcMain.handle('tool:call', async (_event, name, args): Promise<any> => {
+  ipcMain.handle(IPC_CHANNELS.TOOL_CALL, async (_event, name, args): Promise<any> => {
     return toolService.callTool(name, args)
   })
 
-  permissionManager.on('permission-required', (request): void => {
+  permissionManager.on(PERMISSION_EVENTS.REQUIRED, (request): void => {
     BrowserWindow.getAllWindows().forEach((win) => {
-      win.webContents.send('tool:permission-required', request)
+      win.webContents.send(IPC_CHANNELS.TOOL_PERMISSION_REQUIRED, request)
     })
   })
 
-  ipcMain.handle('tool:permission-decision', (_event, { requestId, decision }): void => {
+  ipcMain.handle(IPC_CHANNELS.TOOL_PERMISSION_DECISION, (_event, { requestId, decision }): void => {
     permissionManager.handleDecision(requestId, decision)
   })
 
-  ipcMain.handle('tool:permission-pending', (): any => {
+  ipcMain.handle(IPC_CHANNELS.TOOL_PERMISSION_PENDING, (): any => {
     return permissionManager.getLatestPendingRequest()
   })
 }

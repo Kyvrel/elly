@@ -15,6 +15,12 @@ interface PermissionRequest {
   timestamp: number
 }
 
+export const PERMISSION_EVENTS = {
+  REQUIRED: 'permission-required'
+} as const
+
+const decisionEvent = (requestId: string): string => `decision-${requestId}`
+
 export class PermissionManager extends EventEmitter {
   private pendingRequests = new Map<string, PermissionRequest>()
   private autoApprovals = new Set<string>()
@@ -36,11 +42,11 @@ export class PermissionManager extends EventEmitter {
 
     this.pendingRequests.set(requestId, request)
     // notify the uid via event
-    this.emit('permission-required', request)
+    this.emit(PERMISSION_EVENTS.REQUIRED, request)
 
     return new Promise((resolve) => {
       // listen for a specific event for this request
-      this.once(`decision-${requestId}`, (decision: ApprovalDecision) => {
+      this.once(decisionEvent(requestId), (decision: ApprovalDecision) => {
         this.pendingRequests.delete(requestId)
         switch (decision) {
           case ApprovalDecision.APPROVE_ALL:
@@ -59,7 +65,7 @@ export class PermissionManager extends EventEmitter {
 
   // called by ui when the user clicks a button
   handleDecision(requestId: string, decision: ApprovalDecision): void {
-    this.emit(`decision-${requestId}`, decision)
+    this.emit(decisionEvent(requestId), decision)
   }
 
   getLatestPendingRequest(): PermissionRequest | null {
