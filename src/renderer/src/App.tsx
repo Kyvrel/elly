@@ -15,7 +15,7 @@ function App(): React.JSX.Element {
       const data = await api.threads.getAll()
       setThreads(data)
       if (data.length > 0) {
-        setActiveThreadId(data[data.length - 1].threadId)
+        setActiveThreadId(data[0].id)
       }
     }
     load()
