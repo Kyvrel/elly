@@ -1,3 +1,13 @@
+## v0.0.21 (2026-02-07)
+
+## Summary
+- Improved sidebar background contrast for better visibility of selected items
+- Added new `Alert` and `AlertDialog` UI components
+- Refined color theme variables in `globals.css`
+- Improved logging and user feedback in chat components
+
+- [#24](https://github.com/Kyvrel/elly/pull/24) feat: enhance sidebar visual contrast and add alert components
+
 ## v0.0.20 (2026-02-07)
 
 ## Summary
