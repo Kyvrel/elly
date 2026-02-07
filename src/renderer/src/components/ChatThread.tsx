@@ -48,7 +48,7 @@ export function ChatThread({ threadId }: ChatThreadProps): React.JSX.Element {
   const handleClick = async (): Promise<void> => {
     if (!input.trim()) return
     if (!threadId) {
-      alert('please select a chat')
+      alert('please create a new chat')
       return
     }
     const newUserMsg = { id: Date.now(), role: 'user', content: input }
