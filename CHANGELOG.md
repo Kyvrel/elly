@@ -1,3 +1,13 @@
+## v0.0.20 (2026-02-07)
+
+## Summary
+- Move tool-related IPC channel strings (`tool:call`, `tool:permission-*`) into `IPC_CHANNELS` constants.
+- Add `PERMISSION_EVENTS` and `decisionEvent()` helper to avoid magic strings in `PermissionManager`.
+- Add `getPendingPermission` type to preload `API` interface.
+- Update tool-call flow doc with full file paths and mermaid diagram.
+
+- [#23](https://github.com/Kyvrel/elly/pull/23) refactor: replace IPC string literals with constants
+
 ## v0.0.19 (2026-02-07)
 
 ## Summary
