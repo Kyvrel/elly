@@ -1,3 +1,12 @@
+## v0.0.19 (2026-02-07)
+
+## Summary
+- Add IPC to get the latest pending permission request.
+- Expose a preload API to read the pending request.
+- Load the pending request on dialog mount and keep the live listener.
+
+- [#22](https://github.com/Kyvrel/elly/pull/22) fix: show pending permission request
+
 ## v0.0.18 (2026-02-05)
 
 ## Summary
