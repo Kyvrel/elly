@@ -57,4 +57,8 @@ export function setupIPCHandlers(mainWindow: BrowserWindow): void {
   ipcMain.handle('tool:permission-decision', (_event, { requestId, decision }): void => {
     permissionManager.handleDecision(requestId, decision)
   })
+
+  ipcMain.handle('tool:permission-pending', (): any => {
+    return permissionManager.getLatestPendingRequest()
+  })
 }
