@@ -9,6 +9,7 @@ interface API {
   openExternalUrl: (url: string) => Promise<{ success: boolean }>
   onPermissionRequired: (callback: (request: any) => void) => () => void
   sendPermissionDecision: (requestId: string, decision: string) => Promise<void>
+  getPendingPermission: () => Promise<any>
 }
 
 declare global {

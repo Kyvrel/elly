@@ -23,14 +23,14 @@ const api = {
   // tool permissions
   onPermissionRequired: (callback: (request: any) => void): (() => void) => {
     const listener = (_event: any, request: any): void => callback(request)
-    ipcRenderer.on('tool:permission-required', listener)
+    ipcRenderer.on(IPC_CHANNELS.TOOL_PERMISSION_REQUIRED, listener)
     return (): void => {
-      ipcRenderer.removeListener('tool:permission-required', listener)
+      ipcRenderer.removeListener(IPC_CHANNELS.TOOL_PERMISSION_REQUIRED, listener)
     }
   },
   sendPermissionDecision: (requestId: string, decision: string): Promise<void> =>
-    ipcRenderer.invoke('tool:permission-decision', { requestId, decision }),
-  getPendingPermission: (): Promise<any> => ipcRenderer.invoke('tool:permission-pending')
+    ipcRenderer.invoke(IPC_CHANNELS.TOOL_PERMISSION_DECISION, { requestId, decision }),
+  getPendingPermission: (): Promise<any> => ipcRenderer.invoke(IPC_CHANNELS.TOOL_PERMISSION_PENDING)
 }
 
 // Use `contextBridge` APIs to expose Electron APIs to
