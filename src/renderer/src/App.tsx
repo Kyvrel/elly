@@ -4,16 +4,19 @@ import { AppSidebar } from './components/AppSidebar'
 import { ChatThread } from './components/ChatThread'
 import { PermissionDialog } from './components/PermissionDialog'
 import { SidebarProvider } from '@/components/ui/sidebar'
+import { ChatThread as ChatThreadType } from 'src/shared/types'
 
 function App(): React.JSX.Element {
-  const [threads, setThreads] = useState<any[]>([])
+  const [threads, setThreads] = useState<ChatThreadType[]>([])
   const [activeThreadId, setActiveThreadId] = useState('')
 
   useEffect((): void => {
     const load = async (): Promise<void> => {
       const data = await api.threads.getAll()
-      console.log('threads: ', data)
       setThreads(data)
+      if (data.length > 0) {
+        setActiveThreadId(data[data.length - 1].threadId)
+      }
     }
     load()
   }, [])

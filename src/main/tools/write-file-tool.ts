@@ -24,7 +24,7 @@ export const WriteFileTool: ToolDefinition = {
         return { success: false, error: 'No active workspace' }
       }
       const absolutePath = workspaceManager.resolvePath(file_path)
-      if (workspaceManager.isPathInWorkspace(absolutePath, workspace.id)) {
+      if (!workspaceManager.isPathInWorkspace(absolutePath, workspace.id)) {
         return { success: false, error: 'File outside workspace' }
       }
       if (workspaceManager.isSensitiveFile(absolutePath)) {

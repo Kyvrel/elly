@@ -127,9 +127,9 @@ export class DBService {
 
   insertMessage(msg: Omit<ChatMessage, 'createdAt' | 'updatedAt'>): ChatMessage {
     const now = new Date()
-    const messsage = { ...msg, createdAt: now, updatedAt: now }
-    db.insert(chatMessages).values(messsage).run()
-    return messsage
+    const message = { ...msg, createdAt: now, updatedAt: now }
+    db.insert(chatMessages).values(message).run()
+    return message
   }
 
   updateMessage(id: string, message: UIMessage): ChatMessage | undefined {

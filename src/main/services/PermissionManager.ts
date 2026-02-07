@@ -1,6 +1,7 @@
 import { EventEmitter } from 'events'
 import { ToolDefinition } from '../../shared/types-tools'
 import { nanoid } from 'nanoid'
+import { TIMEOUT } from 'dns'
 
 export enum ApprovalDecision {
   APPROVE_ONCE = 'approve_once',
@@ -45,8 +46,14 @@ export class PermissionManager extends EventEmitter {
     this.emit(PERMISSION_EVENTS.REQUIRED, request)
 
     return new Promise((resolve) => {
+      const TIMEOUT_MS = 60_000
+      const timeoutId = setTimeout(() => {
+        this.pendingRequests.delete(requestId)
+        this.removeAllListeners(decisionEvent(requestId))
+      }, TIMEOUT_MS)
       // listen for a specific event for this request
       this.once(decisionEvent(requestId), (decision: ApprovalDecision) => {
+        clearTimeout(timeoutId)
         this.pendingRequests.delete(requestId)
         switch (decision) {
           case ApprovalDecision.APPROVE_ALL:
